@@ -60,3 +60,9 @@ run_all.sh                ← One-shot execution script
 | Fig.4  | run_shell_lowvis.py | Low-ν long-time R(k,t) + cascade front |
 | Fig.5  | run_matched_energy.py | Dissipation pre-payment effect |
 | Fig.6  | run_abc.py | Geometry effect: TG vs ABC |
+
+
+## colab notebook
+```
+https://colab.research.google.com/drive/1oMPXleGk3lpzJKMvhcTj-3G1idqpFdAu?usp=sharing
+```
