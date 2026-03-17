@@ -19,6 +19,7 @@ runs/
   run_shell_lowvis.py     → Fig.4 data (ν=0.005, T=6, shell-resolved)
   run_matched_energy.py   → Fig.5 data (pure TG vs perturbed TG, E₀=0.5)
   run_abc.py              → Fig.6 data (TG vs ABC/Beltrami)
+  run_highre.py           → High-Reynolds-number validation 
 
 figures/
   generate_all_figures.py ← All 6 JFM figures (vector PDF)
@@ -42,6 +43,8 @@ run_all.sh                ← One-shot execution script
 # Or run individually:
 !python runs/run_baseline.py
 !python figures/generate_all_figures.py
+
+!nohup python runs/run_highre.py > highre_log.txt 2>&1 &
 ```
 
 ## Requirements
