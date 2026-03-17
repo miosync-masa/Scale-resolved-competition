@@ -31,6 +31,8 @@ run_all.sh                ← One-shot execution script
 
 ```python
 # 1. Upload or clone this directory
+!git clone https://github.com/miosync-masa/Scale-resolved-competition.git
+
 # 2. Install JAX with GPU
 !pip install jax[cuda12]
 
