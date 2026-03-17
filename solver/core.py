@@ -128,27 +128,36 @@ class NSSolver:
 
             return project(u_new, v_new, w_new)
 
-        @jit
-        def run_chunk(state, chunk_size=100):
-            """Advance chunk_size steps without diagnostics."""
-            def body_fn(carry, _):
-                return rk4_step(*carry), None
-            (uh, vh, wh), _ = lax.scan(body_fn, state, None, length=chunk_size)
-            return uh, vh, wh
-
         self.project = project
         self.rk4_step = rk4_step
-        self.run_chunk = run_chunk
+        self._chunk_cache = {}
+
+        def _make_run_chunk(length):
+            @jit
+            def run_chunk(state):
+                def body_fn(carry, _):
+                    return rk4_step(*carry), None
+                (uh, vh, wh), _ = lax.scan(body_fn, state, None, length=length)
+                return uh, vh, wh
+            return run_chunk
+
+        self._make_run_chunk = _make_run_chunk
+
+    def run_chunk(self, state, chunk_size=100):
+        """Advance chunk_size steps. JIT function is cached per chunk_size."""
+        if chunk_size not in self._chunk_cache:
+            self._chunk_cache[chunk_size] = self._make_run_chunk(chunk_size)
+        return self._chunk_cache[chunk_size](state)
 
     # -----------------------------------------------------------------
     #  Warmup
     # -----------------------------------------------------------------
-    def warmup(self, u_hat, v_hat, w_hat):
+    def warmup(self, u_hat, v_hat, w_hat, chunk_size=100):
         """JIT warmup calls."""
         from .diagnostics import compute_global_metrics, compute_shell_metrics
         _ = compute_global_metrics(self, u_hat, v_hat, w_hat)
         _ = compute_shell_metrics(self, u_hat, v_hat, w_hat)
-        _ = self.run_chunk((u_hat, v_hat, w_hat))
+        _ = self.run_chunk((u_hat, v_hat, w_hat), chunk_size=chunk_size)
 
     # -----------------------------------------------------------------
     #  Main simulation loop
@@ -180,7 +189,7 @@ class NSSolver:
         # warmup
         if verbose:
             print("  JIT warmup ...")
-        self.warmup(u_hat, v_hat, w_hat)
+        self.warmup(u_hat, v_hat, w_hat, chunk_size=diag_interval)
 
         # storage
         times, Omegas, Ps, Ds, Rs = [], [], [], [], []
