@@ -2,6 +2,9 @@ import NSBarrier.NSLocalPairingModewiseActual
 import NSBarrier.NSShellEnergyTermActual
 import Mathlib.Tactic
 
+open scoped BigOperators
+open NSTorusShellActual
+
 namespace NSLocalProductionTermActual
 
 open NSFiniteSource
@@ -116,10 +119,10 @@ structure ActualModewiseLocalProductionCoeffData (K_max : ℕ) where
 
   hcoeff_partition :
     ∀ n : ℕ,
-      ∑ κ in modes, (coeffAbs n κ)^2
+      modes.sum (fun κ => (coeffAbs n κ)^2)
         ≤
-      ∑ k in lowShells (K_max := K_max) supportData.Ncut,
-        shellCoeffSq modes coeffAbs shellOf n k
+      (lowShells (K_max := K_max) supportData.Ncut).sum
+        (fun k => shellCoeffSq modes coeffAbs shellOf n k)
 
   modeWeightSq : ℕ → Mode → ℝ
   hmodeWeightSq_nonneg : ∀ n : ℕ, ∀ κ : Mode, 0 ≤ modeWeightSq n κ
@@ -146,7 +149,7 @@ structure ActualModewiseLocalProductionCoeffData (K_max : ℕ) where
   hmodeEnergyCoeff_sum_le_shellEnergy :
     ∀ n : ℕ, ∀ k : Fin K_max,
       k ∈ lowShells (K_max := K_max) supportData.Ncut →
-        ∑ κ in modes.filter (fun κ => shellOf κ = k), modeEnergyCoeff n κ
+        (modes.filter (fun κ => shellOf κ = k)).sum (fun κ => modeEnergyCoeff n κ)
           ≤
         Eshell n k
 
@@ -159,6 +162,11 @@ structure ActualModewiseLocalProductionCoeffData (K_max : ℕ) where
   hlocalProdCoeff_le_coeffAbs :
     ∀ n : ℕ, ∀ k : Fin K_max, ∀ κ : Mode,
       κ ∈ modes → localProdCoeff n k κ ≤ coeffAbs n κ
+
+  /-- The local part of production vanishes on the zero shell. -/
+  hP_loc_zero :
+    ∀ n : ℕ, ∀ k : Fin K_max,
+      k.val = 0 → supportData.split.P_loc n k ≤ 0
 
   /-- Step 1: the shellwise local production is controlled by the finite sum of
       primitive modewise local production terms. -/
@@ -237,7 +245,7 @@ noncomputable def toActualModewiseLocalPairingData
       ns.hshellFactor_nonneg ns.hmodeEnergyCoeff_nonneg
   hmodeWeightSq_le_shellEnergyTerm := ns.hmodeWeightSq_le_shellEnergyTerm
   hshellEnergySum_le_shellEnergy := hshellEnergySum_le_shellEnergy_of_modeEnergy
-    (toActualModewiseShellBlockData {
+    {
       traj := ns.traj
       E := ns.E
       Eshell := ns.Eshell
@@ -257,9 +265,27 @@ noncomputable def toActualModewiseLocalPairingData
       hD_def := ns.hD_def
       hpairing_Xi := by
         intro n k hk hk1
+        have hsum :
+            localProductionOfTerms ns.modes
+              (localProdTermOfCoeff ns.Xi ns.localProdCoeff) n k
+              ≤
+            ∑ κ ∈ ns.modes, ns.coeffAbs n κ * ns.Xi n k := by
+          unfold localProductionOfTerms localProdTermOfCoeff
+          refine Finset.sum_le_sum ?_
+          intro κ hκ
+          exact mul_le_mul_of_nonneg_right
+            (ns.hlocalProdCoeff_le_coeffAbs n k κ hκ)
+            (ns.hXi_nonneg n k)
+        have hsum_eq :
+            (∑ κ ∈ ns.modes, ns.coeffAbs n κ * ns.Xi n k)
+              =
+            l1LocalStrainAmp ns.modes ns.coeffAbs n * ns.Xi n k := by
+          unfold l1LocalStrainAmp
+          rw [Finset.sum_mul]
         exact le_trans
           (ns.hP_loc_le_sum_localProdCoeffXi n k hk hk1)
-          (le_of_eq rfl)
+          (le_trans hsum (le_of_eq hsum_eq))
+      hP_loc_zero := ns.hP_loc_zero
       modes := ns.modes
       coeffAbs := ns.coeffAbs
       hcoeffAbs_nonneg := ns.hcoeffAbs_nonneg
@@ -276,13 +302,14 @@ noncomputable def toActualModewiseLocalPairingData
       hmodeEnergyCoeff_nonneg := ns.hmodeEnergyCoeff_nonneg
       hmodeWeightSq_le_shellEnergyTerm := ns.hmodeWeightSq_le_shellEnergyTerm
       hmodeEnergyCoeff_sum_le_shellEnergy := ns.hmodeEnergyCoeff_sum_le_shellEnergy
-    })
+    }
   pairTerm := ns.localProdCoeff
   hpairTerm_nonneg := ns.hlocalProdCoeff_nonneg
   hpairTerm_le_coeffAbs := hpairTerm_le_coeffAbs_of_localProdCoeff ns
   localProdTerm := localProdTermOfCoeff ns.Xi ns.localProdCoeff
   hP_loc_le_sum_localProd := ns.hP_loc_le_sum_localProdCoeffXi
   hlocalProd_le_pairTermXi := hlocalProd_le_pairTermXi_of_definition ns
+  hP_loc_zero := ns.hP_loc_zero
 
 #check @toActualModewiseLocalPairingData
 

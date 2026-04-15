@@ -49,17 +49,17 @@ theorem remaining_pde_assumptions_summary :
 
 /-- [Alg] sigma_ae_bound is derived from Sop_ae_bound
 via norm_sigmaFromOpNorm. -/
-theorem sigma_ae_bound_derived :=
+abbrev sigma_ae_bound_derived :=
   @sigma_ae_bound_of_true_strain_operator_bound
 
 /-- [Alg] The Linfty norm of sigma is bounded by strainSup,
 derived from sigma_ae_bound via eLpNormEssSup_le_of_ae_bound. -/
-theorem sigma_Linfty_bound_derived :=
+abbrev sigma_Linfty_bound_derived :=
   @sigma_Linfty_bound_of_true_strain_operator_bound
 
 /-- [Alg] Pointwise operator-norm domination of stretch by
 sigma * omega, via le_opNorm. -/
-theorem stretch_pointwise_dom_derived :=
+abbrev stretch_pointwise_dom_derived :=
   @stretch_pointwise_dom_of_operator_norm
 
 #check @sigma_ae_bound_derived
@@ -72,12 +72,12 @@ theorem stretch_pointwise_dom_derived :=
 
 /-- [Alg] Shell-projected vorticity norm is bounded by full
 vorticity norm, by projector contraction. -/
-theorem shellOmega_norm_bounded_derived :=
+abbrev shellOmega_norm_bounded_derived :=
   @shellOmegaLp_norm_le_of_projector_contraction
 
 /-- [Alg] action_le is derived from stretch_dom + sigma_bound
 + projector contraction. -/
-theorem action_le_derived :=
+abbrev action_le_derived :=
   @action_le_of_lp_projector_contraction
 
 #check @shellOmega_norm_bounded_derived
@@ -89,17 +89,17 @@ theorem action_le_derived :=
 
 /-- [ODE] Continuity of Galerkin coefficients follows from
 HasDerivAt (differentiable implies continuous). -/
-theorem coeff_continuous_derived :=
+abbrev coeff_continuous_derived :=
   @continuous_coeff_of_hasDeriv
 
 /-- [ODE] Shellwise production is interval integrable,
 from continuity of coefficients and nonlinear term. -/
-theorem PCont_integrable_derived :=
+abbrev PCont_integrable_derived :=
   @PCont_intervalIntegrable_of_continuous_coeff
 
 /-- [ODE] Shellwise dissipation is interval integrable,
 from continuity of coefficients. -/
-theorem DCont_integrable_derived :=
+abbrev DCont_integrable_derived :=
   @DCont_intervalIntegrable_of_continuous_coeff
 
 #check @coeff_continuous_derived

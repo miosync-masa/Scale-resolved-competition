@@ -1,11 +1,13 @@
 import NSBarrier.NSProjectorShellEqualityTheorems
 import NSBarrier.NSGalerkinShellStepIdentity
 import NSBarrier.NSGalerkinEnstrophyIdentity
+import NSBarrier.NSFiniteSourceClosure
 import Mathlib.Tactic
 
 namespace NSShellwiseIdentityTheorems
 
 open NSFiniteSource
+open NSFiniteSourceClosure
 open NSFiniteSourceTrajectory
 open NSFiniteSourceConditionalGronwall
 open NSGalerkinHinc

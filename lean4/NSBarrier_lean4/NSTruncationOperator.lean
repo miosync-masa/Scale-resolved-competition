@@ -1,14 +1,12 @@
 import NSBarrier.Basic
 import NSBarrier.NSFourier
 import NSBarrier.NSUniform
-import NSBarrier.NSTruncationConsistency
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Fin.Basic
 import Mathlib.Tactic
 
 open NSFourier
 open NSUniform
-open NSTruncationConsistency
 
 namespace NSTruncationOperator
 
@@ -23,14 +21,14 @@ def restrictShell {K_max : ℕ} (F : ℕ → ℝ) : Fin K_max → ℝ :=
 @[simp] theorem restrictShell_apply {K_max : ℕ} (F : ℕ → ℝ) (k : Fin K_max) :
     restrictShell F k = F k.val := rfl
 
-@[simp] theorem restrictShell_succEmbed {K : ℕ} (F : ℕ → ℝ) (k : Fin K) :
-    restrictShell (K_max := K + 1) F (succEmbed k) =
+@[simp] theorem restrictShell_castSucc {K : ℕ} (F : ℕ → ℝ) (k : Fin K) :
+    restrictShell (K_max := K + 1) F (Fin.castSucc k) =
       restrictShell (K_max := K) F k := by
   rfl
 
 #check @restrictShell
 #check @restrictShell_apply
-#check @restrictShell_succEmbed
+#check @restrictShell_castSucc
 
 -- ============================================================
 -- SECTION 2: INFINITE SHELL DATA
@@ -114,23 +112,36 @@ def inducedFourierTrajectoryFamily
 -- ============================================================
 
 /-- The induced family preserves shell data across one-step truncation. -/
-theorem shellDataPreservedStep_of_induced
-    (infB : InfiniteShellBudget) :
-    ShellDataPreservedStep (inducedBudgetTrajectoryFamily infB) := by
-  intro K n k
-  constructor <;>
-    simp [inducedBudgetTrajectoryFamily, inducedShellBudget, restrictShell]
-
-/-- Hence the induced family is truncation-consistent. -/
 theorem consistentTruncation_of_induced
     (infB : InfiniteShellBudget) :
     ConsistentTruncation (inducedBudgetTrajectoryFamily infB) := by
-  exact
-    consistentTruncation_of_preserved_step
-      (inducedBudgetTrajectoryFamily infB)
-      (shellDataPreservedStep_of_induced infB)
+  intro K n
+  let sb : ShellBudget K := inducedShellBudget infB K n
+  let sb' : ShellBudget (K + 1) := inducedShellBudget infB (K + 1) n
+  by_cases hS : (activeShells sb).Nonempty
+  · have hmem : (activeShells sb).max' hS ∈ activeShells sb :=
+      Finset.max'_mem (activeShells sb) hS
+    have hcast_mem : Fin.castSucc ((activeShells sb).max' hS) ∈ activeShells sb' := by
+      rcases Finset.mem_filter.mp hmem with ⟨_, hlt⟩
+      refine Finset.mem_filter.mpr ?_
+      constructor
+      · exact Finset.mem_univ _
+      · simpa [sb, sb', inducedShellBudget, restrictShell]
+          using hlt
+    have hS' : (activeShells sb').Nonempty := ⟨_, hcast_mem⟩
+    have hle :
+        Fin.castSucc ((activeShells sb).max' hS) ≤
+          (activeShells sb').max' hS' :=
+      Finset.le_max' (activeShells sb') _ hcast_mem
+    have hle_nat :
+        ((activeShells sb).max' hS).val ≤ ((activeShells sb').max' hS').val := by
+      exact_mod_cast hle
+    simpa [inducedBudgetTrajectoryFamily, sb, sb', jumpFront, hS, hS'] using hle_nat
+  · have h0 :
+        0 ≤ jumpFront (inducedBudgetTrajectoryFamily infB (K + 1) n) :=
+      Nat.zero_le _
+    simpa [inducedBudgetTrajectoryFamily, sb, sb', jumpFront, hS] using h0
 
-#check @shellDataPreservedStep_of_induced
 #check @consistentTruncation_of_induced
 
 -- ============================================================

@@ -2,7 +2,7 @@ import NSBarrier.NSStrainSupBootstrap
 import NSBarrier.NSGalerkinExistenceTheorems
 import Mathlib.Tactic
 
-namespace NSContinuationCriterion
+namespace NSTruncationConsistency
 
 open NSStrainSupBootstrap
 open NSGalerkinExistenceTheorems
@@ -216,4 +216,4 @@ It only assumes a local existence seed, which is exactly what
 `NSGalerkinExistenceTheorems` now provides.
 -/
 
-end NSContinuationCriterion
+end NSTruncationConsistency

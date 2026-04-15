@@ -101,7 +101,6 @@ import NSBarrier.NSTorusShellActual
 import NSBarrier.NSTorusShellFinite
 import NSBarrier.NSTorusShellModes
 import NSBarrier.NSTriadGeometryOffset
-import NSBarrier.NSTruncationConsistency
 import NSBarrier.NSTruncationOperator
 import NSBarrier.NSUniform
 import NSBarrier.NSUniformA1Bridge

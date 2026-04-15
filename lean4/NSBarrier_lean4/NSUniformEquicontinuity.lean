@@ -83,12 +83,18 @@ theorem lipschitz_of_uniform_deriv_bound
     intro x _
     rw [Real.norm_eq_abs]
     exact (Classical.choose_spec (hderiv x)).2
-  have hmvt :=
+  have hs_mem : s ∈ Set.uIcc s t := by
+    exact ⟨min_le_left _ _, le_max_left _ _⟩
+  have ht_mem : t ∈ Set.uIcc s t := by
+    exact ⟨min_le_right _ _, le_max_right _ _⟩
+  simpa [Real.norm_eq_abs, abs_sub_comm, mul_comm] using
     Convex.norm_image_sub_le_of_norm_hasDerivWithin_le
+      (f := state)
+      (f' := fun x => Classical.choose (hderiv x))
+      (s := Set.uIcc s t)
+      (x := s) (y := t)
       hwithin hbound (convex_uIcc s t)
-      (Set.left_mem_uIcc) (Set.right_mem_uIcc)
-  simp only [Real.norm_eq_abs] at hmvt
-  exact hmvt
+      hs_mem ht_mem
 
 #check @lipschitz_of_uniform_deriv_bound
 
