@@ -108,6 +108,123 @@ To reproduce:
 | Fig.6 | run_abc.py | Geometry effect: TG vs ABC |
 | Movie 1 | generate_movie.py | R(k,t) time evolution animation |
 
+## Lean 4 Formal Verification
+
+The complete formal proof is located in the `/lean4/` directory.
+
+### Quick Start
+
+```bash
+cd lean4/
+lake build        # Full verification — 0 sorry, 0 axiom
+```
+
+### What is verified
+
+| Item | Value |
+|------|-------|
+| Files | 119 |
+| Lines | 22,181 |
+| Theorems / Lemmas / Defs | 807 |
+| `sorry` | **0** |
+| `axiom` | **0** |
+| Irreducible external assumption | **1** — `ω₀ ∈ L²(T³)` |
+| Lean version | 4.x + Mathlib |
+
+### Architecture
+
+The proof consists of three master theorems connected by a single logical chain:
+
+| Theorem | Statement | Layer |
+|---------|-----------|-------|
+| **Theorem I** (Closure) | Conditional Gronwall from triad geometry + finite Bernstein | Layer 12 |
+| **Theorem II** (Realization) | True NS fields discharge Theorem I hypotheses via Galerkin ODE | Layer 12 |
+| **Theorem III** (No-Blowup) | Bootstrap + continuation → no minimal blowup scenario | Layer 13 |
+| **K_max Limit Passage** | Arzelà-Ascoli extraction → weak-to-strong gap on limit | Layer 14-15 |
+
+All 807 statements are organized across 17 layers. See [`FULL_THEOREM_REGISTRY.md`](lean4/FULL_THEOREM_REGISTRY.md) for the complete list.
+
+### Dependency Graph
+
+The formal proof has 119 files with 274 inter-file dependencies. The layer-level architecture:
+
+```
+Layer 0  Abstract Barrier Core (k⁴ barrier, finite source reduction)
+   ↓
+Layer 1  Integrated hinc (enstrophy increment identity)
+   ↓
+Layer 2  Galerkin ODE Realization (product rule, FTC)
+   ↓
+Layer 3  Triad Geometry (offset C₀=2, support exclusion)
+   ↓
+Layer 4  Finite-Band Bernstein (Cauchy-Schwarz on finite modes)
+   ↓
+Layer 5  Shell-Block Modewise Decomposition
+   ↓
+Layer 6-7  Torus L²/L∞ Analysis → Strain Tensor
+   ↓
+Layer 8  True NS Fields [PDE input: ω₀ ∈ L²(T³)]
+   ↓
+Layer 9-10  Abstract Fourier Chain → Named Theorem Surface
+   ↓
+Layer 11  PDE Regularity & Galerkin Existence (Mathlib IsPicardLindelof)
+   ↓
+Layer 12  ★ Master Theorems (Closure + Realization + Main) ★
+   ↓
+Layer 13  Bootstrap / Continuation / No-Blowup Master
+   ↓
+Layer 14  Uniform Estimates & Compactness (Arzelà-Ascoli)
+   ↓
+Layer 15  K_max-Uniform Analysis (equicontinuity via MVT)
+   ↓
+Layer 16  Limit Passage → Weak-to-Strong Gap
+   ↓
+   ★ Millennium Frontier ★
+```
+
+### Irreducible PDE Frontier
+
+After bootstrap regeneration, the **sole external assumption** is:
+
+```
+omega_mem : MemLp (omega k) 2    — initial vorticity ω₀ ∈ L²(T³)
+```
+
+All other assumptions previously appearing as external inputs have been internalized:
+
+| Previously external | Now internal via |
+|---|---|
+| `Sop_ae_bound` | `bootstrapStrainSup` (regenerated at each step) |
+| `sigma_ae_bound` | `sigma_bound_of_ae_bound` |
+| `sigma_mem` | `NSActualSigmaBoundProof` |
+| `stretch_mem` | `stretch_memLp_of_dominated_and_measurable` |
+| Cauchy-Lipschitz | Mathlib `IsPicardLindelof` (sorry-free) |
+| Arzelà-Ascoli | Mathlib `BoundedContinuousFunction.arzela_ascoli` (sorry-free) |
+
+### Key Mathlib Connections (all sorry-free)
+
+- `IsPicardLindelof` — ODE existence
+- `BoundedContinuousFunction.arzela_ascoli` — compactness extraction
+- `IsCompact.tendsto_subseq` — subsequence extraction
+- `Convex.norm_image_sub_le_of_norm_hasDerivWithin_le` — MVT for Lipschitz
+- `integral_eq_sub_of_hasDerivAt` — FTC for shellwise identity
+
+### Reproducing
+
+```bash
+# Clone
+git clone https://github.com/miosync-masa/Scale-resolved-competition.git
+cd Scale-resolved-competition/lean4/
+
+# Build (requires Lean 4 + elan)
+lake update
+lake build
+
+# Expected output: Build completed successfully. (0 errors)
+```
+
+No `sorry`. No `axiom`. Every statement is machine-checked.
+
 ## License
 
 MIT
