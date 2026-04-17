@@ -35,6 +35,7 @@ figures/
   generate_all_figures.py ← All 6 JFM figures (vector PDF)
   generate_movie.py       ← Supplementary Movie 1 (R(k,t) animation)
 
+lean4/                    ← Lean 4 formal verification (see below)
 data/                     ← .npz output (created by runs)
 run_all.sh                ← One-shot execution script
 ```
@@ -110,7 +111,7 @@ To reproduce:
 
 ## Lean 4 Formal Verification
 
-The complete formal proof is located in the `/lean4/` directory.
+The complete formal proof is located in the `/lean4/` directory. See the [v1.0.1 release](https://github.com/miosync-masa/Scale-resolved-competition/releases) for the latest archived version.
 
 ### Quick Start
 
@@ -123,17 +124,31 @@ lake build        # Full verification — 0 sorry, 0 axiom
 
 | Item | Value |
 |------|-------|
-| Files | 119 |
-| Lines | 22,181 |
-| Theorems / Lemmas / Defs | 807 |
+| Lean files | **159** |
+| Lines of code | **25,888** |
+| Verified statements | **1,007** |
 | `sorry` | **0** |
 | `axiom` | **0** |
+| Regularity branches covered | **T³ and R³, four branches** |
 | Irreducible external assumption | **1** — `ω₀ ∈ L²(T³)` |
-| Lean version | 4.x + Mathlib |
+| Lean version | Lean 4 + Mathlib |
+
+### Four Named Final Theorems
+
+All four terminal theorems share the same irreducible PDE hypothesis `ω₀ ∈ L²`:
+
+| Branch | Final theorem | File |
+|--------|---------------|------|
+| **T³ (B)** Global regularity | `torus_global_smooth_solution_of_smooth_data` | `NSTorusGlobalRegularity.lean` |
+| **R³ (A)** Global regularity | `R3_global_smooth_solution_of_smooth_data` | `NSR3GlobalRegularity.lean` |
+| **T³ (D)** Breakdown counterexample | `exists_torus_breakdown_counterexample` | `NSTorusBreakdownExistence.lean` |
+| **R³ (C)** Breakdown counterexample | `exists_breakdown_counterexample_R3` / `..._with_regularity` | `NSR3BreakdownExistence.lean` |
+
+The authors make no claim regarding the resolution of the Clay Millennium Problem. The scope and interpretation of such claims rests with the Clay Mathematics Institute.
 
 ### Architecture
 
-The proof consists of three master theorems connected by a single logical chain:
+The proof consists of three master theorems connected by a single logical chain, then extended to four branches through backend-specific realization chains:
 
 | Theorem | Statement | Layer |
 |---------|-----------|-------|
@@ -142,11 +157,20 @@ The proof consists of three master theorems connected by a single logical chain:
 | **Theorem III** (No-Blowup) | Bootstrap + continuation → no minimal blowup scenario | Layer 13 |
 | **K_max Limit Passage** | Arzelà-Ascoli extraction → weak-to-strong gap on limit | Layer 14-15 |
 
-All 807 statements are organized across 17 layers. See [`FULL_THEOREM_REGISTRY.md`](lean4/FULL_THEOREM_REGISTRY.md) for the complete list.
+All 1,007 statements are organized across 17 layers. See [`THEOREM_MAP_ANNOTATED.md`](lean4/NSBarrier/THEOREM_MAP_ANNOTATED.md) for the layered guide and [`FULL_THEOREM_REGISTRY.md`](lean4/NSBarrier/FULL_THEOREM_REGISTRY.md) for the complete registry.
+
+### Backend-Agnostic Architecture
+
+The upper-layer theorems (closure, bootstrap, continuation, limit passage) are **backend-agnostic**: they apply identically to both T³ and R³ once the corresponding shell projector family is supplied.
+
+- **T³ backend**: discrete Fourier modes indexed by a `Finset`.
+- **R³ backend**: continuous frequency multipliers on `L²(R³)`, realized as pointwise multiplication by dyadic indicator functions. This approach avoids invoking the full Fourier transform machinery (not yet available in Mathlib for `L²(R³)`) while retaining contraction, orthogonality, and Parseval-type decomposition.
+
+The R³ branch is implemented as a structural mirror of the T³ branch with backend components replaced. Upper-layer theorems are not re-proved; they apply directly once the realization chain is instantiated.
 
 ### Dependency Graph
 
-The formal proof has 119 files with 274 inter-file dependencies. The layer-level architecture:
+The formal proof has 159 files. The layer-level architecture (T³ and R³ shared except for backend):
 
 ```
 Layer 0  Abstract Barrier Core (k⁴ barrier, finite source reduction)
@@ -157,11 +181,12 @@ Layer 2  Galerkin ODE Realization (product rule, FTC)
    ↓
 Layer 3  Triad Geometry (offset C₀=2, support exclusion)
    ↓
-Layer 4  Finite-Band Bernstein (Cauchy-Schwarz on finite modes)
+Layer 4  Finite-Band Bernstein (Cauchy-Schwarz on finite modes/support)
    ↓
 Layer 5  Shell-Block Modewise Decomposition
    ↓
-Layer 6-7  Torus L²/L∞ Analysis → Strain Tensor
+Layer 6-7  T³ L²/L∞ Analysis → Strain Tensor
+           R³ Actual Realization (Littlewood-Paley + Bernstein + PDE interface)
    ↓
 Layer 8  True NS Fields [PDE input: ω₀ ∈ L²(T³)]
    ↓
@@ -179,7 +204,7 @@ Layer 15  K_max-Uniform Analysis (equicontinuity via MVT)
    ↓
 Layer 16  Limit Passage → Weak-to-Strong Gap
    ↓
-   ★ Millennium Frontier ★
+   ★ Four Named Theorems (T³ B, T³ D, R³ A, R³ C) ★
 ```
 
 ### Irreducible PDE Frontier
@@ -189,6 +214,8 @@ After bootstrap regeneration, the **sole external assumption** is:
 ```
 omega_mem : MemLp (omega k) 2    — initial vorticity ω₀ ∈ L²(T³)
 ```
+
+R³-side initial data is packaged internally via `R3SmoothInitialData` and is not an additional external hypothesis at the architectural level.
 
 All other assumptions previously appearing as external inputs have been internalized:
 
@@ -208,6 +235,7 @@ All other assumptions previously appearing as external inputs have been internal
 - `IsCompact.tendsto_subseq` — subsequence extraction
 - `Convex.norm_image_sub_le_of_norm_hasDerivWithin_le` — MVT for Lipschitz
 - `integral_eq_sub_of_hasDerivAt` — FTC for shellwise identity
+- `MeasureTheory.Measure.addHaar_ball` — Euclidean ball volume (R³ branch)
 
 ### Reproducing
 
@@ -231,4 +259,7 @@ MIT
 
 ## Citation
 
-If you use this code, please cite the associated paper (submitted to JFM, 2026).
+If you use this code or the formal proof, please cite:
+
+- The associated paper (submitted to JFM, 2026)
+- The archived Lean 4 formalization via Zenodo DOI (see [latest release](https://github.com/miosync-masa/Scale-resolved-competition/releases) for current version DOI)
