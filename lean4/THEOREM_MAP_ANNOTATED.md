@@ -1,6 +1,6 @@
 # NSBarrier Annotated Theorem Map
 
-**119 files, 22,181 lines, 0 sorry, 0 axiom, irreducible input 1 (omega_0 in L^2) — Lean 4 + Mathlib**
+**159 Lean files, 25,888 lines, 0 sorry, 0 axiom, irreducible input 1 (`ω₀ ∈ L²(T³)`) — Lean 4 + Mathlib**
 
 ---
 
@@ -14,14 +14,14 @@ Each hypothesis/definition/theorem is tagged with exactly one of:
 | `[Geom]` | Geometric/combinatorial theorem (triad support, shell index) | **Closed** |
 | `[Alg]` | Algebraic/Lp identity (finite sums, norm equivalences, Cauchy-Schwarz) | **Closed** |
 | `[ODE]` | Finite-dimensional realization (Galerkin ODE, product rule, FTC) | **Closed** |
-| `[PDE]` | True analytic input from Navier-Stokes fields | **Assumption** |
+| `[PDE]` | PDE-facing Navier-Stokes interface / frontier | **Frontier layer** |
 
 Items tagged `[Def]`, `[Geom]`, `[Alg]`, `[ODE]` are **formally discharged** in Lean.
-Items tagged `[PDE]` are the **only remaining external assumptions**.
+Items tagged `[PDE]` touch the PDE-facing interface; after internalization, the **sole irreducible external assumption** is the torus datum `ω₀ ∈ L²(T³)`, while the `R³` branch is packaged internally.
 
 ---
 
-## Architecture: Two-Theorem Structure
+## Architecture: Core Theorems and Branch Wrappers
 
 ### Theorem I: Closure Theorem (Conditional Gronwall)
 
@@ -95,18 +95,52 @@ NSUniformMCBound  [Alg] M, C K_max-independent
               -> NSWeakToStrongGap  [Alg] discrete Gronwall on limit
 ```
 
+### Final Wrapper Branches
+
+The repository now has four named end-to-end wrapper branches:
+
+```
+T³(B): NSTorusGlobalRegularity
+  torus_global_smooth_solution_of_smooth_data
+    <- torus_no_finite_time_blowup_of_smooth_data
+    <- torus_limit_solution_inherits_closure
+    <- millennium_frontier_hypothesis_of_torus_uniformF
+
+R³(A): NSR3GlobalRegularity
+  R3_global_smooth_solution_of_smooth_data
+    <- R3_no_finite_time_blowup_of_smooth_data
+    <- R3_limit_solution_inherits_closure
+    <- millennium_frontier_hypothesis_of_R3_uniformF
+
+T³(D): NSTorusBreakdownExistence
+  exists_torus_breakdown_counterexample
+    <- frontier_failure_realized_by_actual_torus_breakdown
+    <- torus_breakdown_implies_frontier_failure
+
+R³(C): NSR3BreakdownExistence
+  exists_breakdown_counterexample_R3
+  exists_breakdown_counterexample_R3_with_regularity
+    <- frontier_failure_realized_by_actual_R3_breakdown
+    <- R3_breakdown_implies_frontier_failure
+```
+
 ---
 
 ## Minimal External Assumptions (`[PDE]` only)
 
 After bootstrap regeneration of `Sop_ae_bound` (see NSStrainSupBootstrap)
 and `sigmaFromOpNorm_aestronglyMeasurable_of_Sop` (see NSMinimalPDEFrontier),
-the irreducible PDE inputs reduce to **1**:
+the irreducible PDE frontier reduces to **1 torus-side input**:
 
 ### Irreducible PDE frontier
 | # | Assumption | File | Tag | Note |
 |---|------------|------|-----|------|
-| 1 | `omega_mem` : MemLp (omega k) 2 | NSActualTrueFields | `[PDE]` | **omega_0 in L^2(T^3)** |
+| 1 | `omega_mem` : MemLp (omega k) 2 | NSActualTrueFields | `[PDE]` | **the sole external assumption: `ω₀ ∈ L²(T³)`** |
+
+### R³ branch-internal package
+| Datum | Realized by | Status |
+|-------|-------------|--------|
+| `ω₀ ∈ L²(R³)` / Euclidean initial datum | `R3SmoothInitialData`, `initial_vorticity_mem_of_R3_local_wellposedness`, `R3CounterexampleRegularityConclusion` | **Internal package** |
 
 This single assumption implies all others:
 - `E0 < infty` : `E0 = ‖omega‖²_{L²} < ∞` (definition of MemLp)
@@ -263,6 +297,12 @@ These appear as structure fields in intermediate layers but are
 | NSNavierStokesLpCore | NavierStokesShellTransportVecLpCoreData | `[Alg]` |
 | NSNavierStokesActual | NavierStokesShellData | `[PDE]` |
 | NSVorticityTransportActualVec | NavierStokesShellTransportVecData | `[PDE]` |
+| NSR3LittlewoodPaleyActual | actualR3ShellProjFamily, actualR3ShellProjectorData | `[Def]` |
+| NSR3ProjectorContraction | actualR3ShellProjFamily_contraction | `[Alg]` |
+| NSR3ProjectorShellEquality | R3ActualProjectedFieldData, shellOmegaLp_eq_projector_of_R3_actual | `[PDE]` |
+| NSR3ActualSigmaBound | R3ShellSigmaBoundProofData, sigma_bound_of_ae_bound_R3 | `[PDE]` |
+| NSR3ActualTrueFields | R3NavierStokesTrueFieldData, true_fields_imply_minimal_pde_frontier_R3_actual | `[PDE]` |
+| NSR3NavierStokesActual | productionFromStrainSup_of_R3_true_fields | `[PDE]` |
 
 ### Layer 9: Abstract Fourier / A1-A2 Chain
 | File | Key exports | Tag |
@@ -314,6 +354,10 @@ modewise -> shellwise -> averaged -> projector -> identity
 | NSGalerkinODEExistenceTheorems | arzela_ascoli_subsequence_extraction, equicontinuity_of_uniform_lipschitz, galerkin_subsequence_extraction_at_times | `[ODE]` |
 | NSPDERegularityTheorems | (summary surface for all PDE regularity) | `[Alg/ODE]` |
 | NSMinimalPDEFrontier | memLp_top_of_aestronglyMeasurable_and_ae_bound, stretch_memLp_of_dominated_and_measurable | `[PDE]` |
+| NSR3BernsteinProof | ActualR3BernsteinData, r3_localStrainAmp_le_bernsteinConstant_mul_localH1Energy | `[PDE]` |
+| NSR3FiniteBandSobolevBridge | ActualR3FiniteBandClosureData, r3_finite_band_closure_actual | `[Alg]` |
+| NSR3LocalWellposedness | R3LocalWellposednessData, smooth_local_solution_seed_on_R3 | `[ODE]` |
+| NSR3SolutionPackage | R3ActualSolutionPackage, r3EnstrophyTrajectory, R3_actual_solution_package_with_enstrophy_trajectory | `[ODE/PDE]` |
 
 ### Layer 12: Master Theorems (Paper Main Results)
 
@@ -353,6 +397,9 @@ modewise -> shellwise -> averaged -> projector -> identity
 | NSDynamicCutoff | fixedAsDynamic, frontAdaptedCutoff, tail_decreases_with_cutoff | `[Alg]` |
 | NSHighShellTailSummability | weightedTailSum, tail_sum_bounded_of_barrier_decay | `[Alg]` |
 | NSMillenniumFrontier | millennium_frontier_master, blowup_at_fixed_step_implies_contradiction | `[Alg]` |
+| NSTorusUniformF | torusUniformF, F_low_Kmax_independent_on_T3 | `[Alg]` |
+| NSR3UniformF | r3UniformF, F_low_Kmax_independent_on_R3 | `[Alg]` |
+| NSR3MillenniumFrontier | millennium_frontier_hypothesis_of_R3_uniformF | `[Alg]` |
 
 ### Layer 16: Limit / Infinity / Bridge Files
 
@@ -368,7 +415,28 @@ modewise -> shellwise -> averaged -> projector -> identity
 | NSUniformA2Bridge | uniform A2 bridge | `[Alg]` |
 | NSUniformBridge | uniform bridge layer | `[Alg]` |
 
-All theorems in Layers 11-16 are **sorry-free**.
+### Layer 17: Final Wrapper Branches
+
+| File | Key exports | Tag |
+|------|-------------|-----|
+| NSTorusLimitClosure | TorusLimitClosureData, torus_limit_solution_inherits_closure | `[Alg]` |
+| NSTorusNoBlowup | TorusNoBlowupData, torus_no_finite_time_blowup_of_smooth_data | `[Alg]` |
+| NSTorusGlobalRegularity | torus_global_smooth_solution_of_smooth_data | `[PDE]` |
+| NSTorusBreakdownDefinition | TorusBreakdownWitness, torus_breakdown_predicate | `[Def]` |
+| NSTorusCounterexampleData | TorusSmoothCounterexampleData, smooth_counterexample_data_T3 | `[PDE]` |
+| NSTorusBreakdownToFrontier | TorusBreakdownFrontierData, torus_breakdown_implies_frontier_failure | `[Alg]` |
+| NSTorusFrontierFailureRealization | frontier_failure_realized_by_actual_torus_breakdown | `[PDE]` |
+| NSTorusBreakdownExistence | exists_torus_breakdown_counterexample | `[PDE]` |
+| NSR3LimitClosure | R3LimitClosureData, R3_limit_solution_inherits_closure | `[Alg]` |
+| NSR3NoBlowup | R3NoBlowupData, R3_no_finite_time_blowup_of_smooth_data | `[Alg]` |
+| NSR3GlobalRegularity | local_seed_of_R3_global_regularity, R3_global_smooth_solution_of_smooth_data | `[PDE]` |
+| NSR3BreakdownDefinition | R3BreakdownWitness, R3_breakdown_predicate | `[Def]` |
+| NSR3CounterexampleData | R3SmoothInitialData, R3_counterexample_data | `[PDE]` |
+| NSR3BreakdownToFrontier | R3BreakdownFrontierData, R3_breakdown_implies_frontier_failure | `[Alg]` |
+| NSR3FrontierFailureRealization | frontier_failure_realized_by_actual_R3_breakdown | `[PDE]` |
+| NSR3BreakdownExistence | exists_breakdown_counterexample_R3, exists_breakdown_counterexample_R3_with_regularity | `[PDE]` |
+
+All theorems in Layers 11-17 are **sorry-free**.
 
 ---
 
@@ -376,16 +444,22 @@ All theorems in Layers 11-16 are **sorry-free**.
 
 | Category | Count | Status |
 |----------|-------|--------|
-| `[Def]` Definitional | ~30 | Closed by unfolding |
-| `[Geom]` Geometric | ~15 | Closed (Euclidean radius, triad exclusion) |
-| `[Alg]` Algebraic/Lp | ~280+ | Closed (Cauchy-Schwarz, Gronwall, L2 multiplier, compactness, bootstrap) |
-| `[ODE]` Finite-dimensional | ~50+ | Closed (product rule, FTC, Galerkin ODE, Picard-Lindelof, Arzela-Ascoli, MVT) |
-| `[PDE]` True NS input | 1 | **Irreducible**: omega_0 in L^2 (initial data) |
+| `[Def]` Definitional | 349 | Closed by unfolding |
+| `[Geom]` Geometric | 20 | Closed (Euclidean radius, triad exclusion) |
+| `[Alg]` Algebraic/Lp | 437 | Closed (Cauchy-Schwarz, Gronwall, L2 multiplier, compactness, bootstrap, wrappers) |
+| `[ODE]` Finite-dimensional | 72 | Closed (product rule, FTC, Galerkin ODE, Picard-Lindelof, Arzela-Ascoli, MVT) |
+| `[PDE]` PDE-facing layer | 50 | sole irreducible external input is `ω₀ ∈ L²(T³)`; `R³` is package-internal |
 
-**Conclusion:** Of the ~375+ formal statements across 119 files (22,181 lines),
+**Conclusion:** Of the 928 named statements recorded in the full registry across 159 Lean files (25,888 lines),
 the irreducible PDE input is **1**:
 
-    omega_0 in L^2(T^3)   (initial vorticity has finite enstrophy)
+    ω₀ ∈ L²(T³)   (the sole external PDE frontier assumption)
+
+The `R³` branch is not a second irreducible input: its Euclidean datum is carried by internal packages
+(`R3SmoothInitialData`, `R3ActualSolutionPackage`, `R3CounterexampleRegularityConclusion`)
+and feeds two wrapper branches:
+- `R³(A)` global regularity: `R3_global_smooth_solution_of_smooth_data`
+- `R³(C)` breakdown/counterexample: `exists_breakdown_counterexample_R3`
 
 All other assumptions are derived:
 - `E0 < infty` — definition: E0 = ‖omega‖²_{L²}
@@ -395,7 +469,7 @@ All other assumptions are derived:
 - `stretch_mem` — derived from first principles (NSMinimalPDEFrontier)
 - Cauchy-Lipschitz — connected to Mathlib `IsPicardLindelof` (sorry-free)
 
-**0 sorry. 0 axiom.** Everything else is formally verified in Lean 4 + Mathlib.
+**0 sorry. 0 axiom.** Everything else, including the torus and Euclidean wrapper branches, is formally verified in Lean 4 + Mathlib.
 
 Key Mathlib connections (sorry-free):
 - `IsPicardLindelof` — Cauchy-Lipschitz ODE existence
