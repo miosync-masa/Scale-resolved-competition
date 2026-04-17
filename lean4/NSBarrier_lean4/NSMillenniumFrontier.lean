@@ -1,6 +1,7 @@
 import NSBarrier.NSUniformEquicontinuity
 import NSBarrier.NSUniformStrainSupBootstrap
 import NSBarrier.NSNoBlowupMaster
+import NSBarrier.NSTorusUniformF
 import Mathlib.Tactic
 
 namespace NSMillenniumFrontier
@@ -9,6 +10,7 @@ open NSUniformStrainSupBootstrap
 open NSUniformHighShellTail
 open NSNoBlowupMaster
 open NSStrainSupBootstrap
+open NSTorusUniformF
 
 /-
   E-branch: Millennium-facing frontier statement.
@@ -58,6 +60,18 @@ structure MillenniumFrontierHypothesis where
   -- this follows from the finite-band Bernstein inequality.
 
 #check @MillenniumFrontierHypothesis
+
+/-- The concrete finite-Fourier torus regeneration function from `NSTorusUniformF`
+instantiates the abstract millennium frontier hypothesis. -/
+noncomputable def millennium_frontier_hypothesis_of_torus_uniformF
+    (modes : Finset NSTorusShellActual.Mode) (Ncut : ℕ) :
+    MillenniumFrontierHypothesis where
+  F := torusUniformF modes Ncut
+  hF_nonneg := torusUniformF_nonneg modes Ncut
+  hF_mono := torusUniformF_mono modes Ncut
+  hF_Kmax_independent := trivial
+
+#check @millennium_frontier_hypothesis_of_torus_uniformF
 
 -- ============================================================
 -- SECTION 2: CONDITIONAL GLOBAL REGULARITY
