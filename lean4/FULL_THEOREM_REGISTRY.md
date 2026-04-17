@@ -7,11 +7,11 @@
 
 | タグ | 件数 | 状態 |
 |------|------:|------|
-| [Def] | 294 | 全件 closed |
+| [Def] | 349 | 全件 closed |
 | [Geom] | 20 | 全件 closed |
-| [Alg] | 409 | 全件 closed |
-| [ODE] | 66 | 全件 closed |
-| [PDE] | 18 | irreducible: ω₀ ∈ L²(T³) のみ |
+| [Alg] | 437 | 全件 closed |
+| [ODE] | 72 | 全件 closed |
+| [PDE] | 50 | torus側 irreducible: `ω₀ ∈ L²(T³)`; `R³` 側は `C^0 \cap L^2(R^3)` を package 化 |
 
 ## B. 依存関係 DAG（Figure 素材）
 
@@ -36,18 +36,66 @@ NSMainTheorem
       ├── strain_regenerated_at_every_step
       ├── continuation_master
       └── no_minimal_blowup
+
+NSTorusGlobalRegularity
+  ├── torus_global_smooth_solution_of_smooth_data
+  │   ├── torus_no_finite_time_blowup_of_smooth_data
+  │   │   ├── torus_limit_solution_inherits_closure
+  │   │   ├── millennium_frontier_hypothesis_of_torus_uniformF
+  │   │   └── actual_solution_package_with_enstrophy_trajectory_T3
+  │   └── continuation_master
+
+NSR3GlobalRegularity
+  ├── R3_global_smooth_solution_of_smooth_data
+  │   ├── R3_no_finite_time_blowup_of_smooth_data
+  │   │   ├── R3_limit_solution_inherits_closure
+  │   │   ├── millennium_frontier_hypothesis_of_R3_uniformF
+  │   │   └── R3_actual_solution_package_with_enstrophy_trajectory
+  │   └── continuation_master
+
+NSTorusBreakdownExistence
+  ├── exists_torus_breakdown_counterexample
+  │   ├── frontier_failure_realized_by_actual_torus_breakdown
+  │   └── torus_breakdown_implies_frontier_failure
+  │       ├── smooth_counterexample_data_T3
+  │       └── blowup_at_fixed_step_implies_contradiction
+
+NSR3BreakdownExistence
+  ├── exists_breakdown_counterexample_R3
+  │   ├── frontier_failure_realized_by_actual_R3_breakdown
+  │   └── R3_breakdown_implies_frontier_failure
+  │       ├── R3_counterexample_data
+  │       └── blowup_at_fixed_step_implies_contradiction
+  └── exists_breakdown_counterexample_R3_with_regularity
+      ├── exists_breakdown_counterexample_R3
+      ├── smooth_initial_data_of_counterexample_R3
+      └── initial_vorticity_mem_of_counterexample_R3
 ```
 
 ## C. 外部仮定（PDE frontier）
 
+### C.1 Irreducible PDE Frontier
+
+| 項目 | 状態 |
+|------|------|
+| `ω₀ ∈ L²(T³)` / `omega_mem : MemLp (omega k) 2` | **irreducible `[PDE]`** — the sole external assumption of the architecture |
+
+### C.2 Internalized (previously external) assumptions
+
 | 項目 | 状態 | 内部化した theorem |
 |------|------|------------------|
-| `ω₀ ∈ L²(T³)` / `omega_mem : MemLp (omega k) 2` | irreducible `[PDE]` | — |
+| `ω₀ ∈ C^0(T³)` / smooth torus datum | 内部化済み | `memLp_two_of_continuous`, `smooth_initial_data_implies_omega_mem_T3` |
 | `Sop_ae_bound` | 内部化済み | `bootstrapStrainSup`, `sigma_ae_bound_of_true_strain_operator_bound` |
 | `sigma_ae_bound` | 内部化済み | `sigma_bound_of_ae_bound`, `sigma_Linfty_bound_of_true_strain_operator_bound` |
 | `sigma_mem` | 内部化済み | `NSActualSigmaBoundProof` 系 |
 | `stretch_mem` | 内部化済み | `stretch_memLp_of_dominated_and_measurable` |
 | `hstate_hasDeriv` | ODE 側で内部化済み | `exists_galerkin_ode_solution`, `navier_stokes_realization_master` |
+
+### C.3 R³ Branch-Internal Package
+
+| 項目 | 状態 | 内部化した theorem |
+|------|------|------------------|
+| `ω₀ ∈ L²(R³)` / Euclidean initial datum | R³ package 化済み | `R3SmoothInitialData`, `initial_vorticity_mem_of_R3_local_wellposedness`, `R3CounterexampleRegularityConclusion` |
 
 ## Layer 0: Abstract Barrier Core
 
@@ -940,3 +988,190 @@ NSMainTheorem
 | 805 | uniform_eventually_nonincreasing_front_from_fourier_inst | NSUniformBridge.lean | `UniformEventuallyNonincreasingFront btraj` | Uniform Fourier-side hypotheses imply that the front is eventually nonincreasing | [Alg] | uniform_eventually_no_corridorStep_from_fourier_inst, ShellBudget, FourierState |
 | 806 | pointwise_eventually_constant_from_uniform_fourier_inst | NSUniformBridge.lean | `\forall  K\_max, \exists  m N : \mathbb{N}, \forall  n, N \le  n \to  jumpFront (n) = m` | For each fixed truncation level `K_max`, the uniform Fourier-side hypotheses imp | [Alg] | uniform_eventually_nonincreasing_front_from_fourier_inst, uniform_eventually_no_corridorStep_from_fourier_inst, ShellBudget |
 | 807 | pointwise_eventually_bounded_from_uniform_fourier_inst | NSUniformBridge.lean | `\forall  K\_max, \exists  M N : \mathbb{N}, \forall  n, N \le  n \to  jumpFront (n) \le  M` | Pointwise eventual constancy yields pointwise eventual boundedness for each trun | [Alg] | pointwise_eventually_constant_from_uniform_fourier_inst, uniform_eventually_nonincreasing_front_from_fourier_inst, ShellBudget |
+
+## Addendum: T1-D5 Torus Branch Sync (2026-04-16)
+
+### Layer 8 Addendum: True NS Field Interface
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 808 | TorusSmoothSolutionFieldData [def] | NSTorusTrueFieldBridge.lean | `(\mathrm{projData}, \omega, Sop, stretch, \sigma \omega, \mathrm{strainSup})` | 滑らかな torus 解断面を true-field bridge に渡すための実データ束 | [Def] | `ShellProjectorData`, `sigmaFromOpNorm`, `NavierStokesTrueFieldData` |
+| 809 | smooth_solution_implies_true_field_data_T3 [def] | NSTorusTrueFieldBridge.lean | `\mathrm{TorusSmoothSolutionFieldData} \to \mathrm{NavierStokesTrueFieldData}` | 滑らかな torus 解断面を actual true-field data に持ち上げる | [Def] | `memLp_two_of_continuous`, `NavierStokesTrueFieldData`, `sigmaFromOpNorm` |
+| 810 | projected_field_data_of_smooth_solution_T3 [def] | NSTorusTrueFieldBridge.lean | `\mathrm{TorusSmoothSolutionFieldData} \to \mathrm{NavierStokesProjectedFieldData}` | smooth solution の true-field data から projected field data を作る | [Def] | `smooth_solution_implies_true_field_data_T3`, `toNavierStokesProjectedFieldData`, `NavierStokesProjectedFieldData` |
+| 811 | productionFromStrainSup_of_smooth_solution_T3 | NSTorusTrueFieldBridge.lean | `ProductionFromStrainSup(P_{\mathrm{loc}}, S_{\mathrm{state}})` | 滑らかな torus 解断面から barrier 側の `ProductionFromStrainSup` を得る | [PDE] | `projected_field_data_of_smooth_solution_T3`, `productionFromStrainSup_of_true_fields`, `toProjectedLpCoreData` |
+| 812 | TorusTrueFieldMinimalPDEData [def] | NSTorusMinimalPDEFrontier.lean | `(\omega, Sop, \omega_k, stretch_k = Sop_k \omega_k)` | true-field bridge と minimal PDE frontier を接続する torus 実データ束 | [Def] | `TorusSmoothSolutionFieldData`, `sigmaFromOpNorm`, `PrimitiveStrainRegularityData` |
+| 813 | Sop_ae_bound_of_true_fields_T3 | NSTorusMinimalPDEFrontier.lean | `\forall k,\ \|Sop_k(x)\| \le \mathrm{strainSup}\ \text{a.e.}` | `\sigma = \|Sop\|_{\mathrm{op}}` の bound から演算子ノルム版の a.e. bound を回復する | [PDE] | `sigma_ae_bound`, `norm_sigmaFromOpNorm`, `TorusTrueFieldMinimalPDEData` |
+| 814 | sigmaFromOpNorm_measurable_of_true_fields_T3 | NSTorusMinimalPDEFrontier.lean | `\forall k,\ \sigma_k \text{ is AEStronglyMeasurable}` | torus true-field 上で `sigmaFromOpNorm` の可測性を内部化する | [PDE] | `sigmaFromOpNorm_aestronglyMeasurable_of_Sop`, `TorusTrueFieldMinimalPDEData`, `sigmaFromOpNorm` |
+| 815 | true_fields_imply_minimal_pde_frontier_T3 | NSTorusMinimalPDEFrontier.lean | `(\forall k,\ \sigma_k \in L^\infty) \land (\forall k,\ Sop_k \omega_k \in L^2)` | torus true-field data が minimal PDE frontier の残り仮定をすべて満たす | [PDE] | `sigma_mem_of_aestronglyMeasurable_and_ae_bound`, `stretch_mem_of_first_principles`, `Sop_ae_bound_of_true_fields_T3` |
+| 816 | toPrimitiveStrainRegularityData_of_true_fields_T3 [def] | NSTorusMinimalPDEFrontier.lean | `\mathrm{TorusTrueFieldMinimalPDEData} \to \mathrm{PrimitiveStrainRegularityData}` | torus true-field data を paper-facing regularity surface に渡す primitive data に変換する | [Def] | `true_fields_imply_minimal_pde_frontier_T3`, `memLp_two_of_continuous`, `PrimitiveStrainRegularityData` |
+| 817 | sigma_ae_bound_derived_of_true_fields_T3 | NSTorusMinimalPDEFrontier.lean | `\forall k,\ \|\sigma_k(x)\| \le \mathrm{strainSup}\ \text{a.e.}` | torus true-field から `sigma_ae_bound` の derived surface を得る | [PDE] | `toPrimitiveStrainRegularityData_of_true_fields_T3`, `sigma_ae_bound_derived`, `sigmaFromOpNorm` |
+| 818 | sigma_Linfty_bound_derived_of_true_fields_T3 | NSTorusMinimalPDEFrontier.lean | `\forall k,\ \|\sigma_k\|_{L^\infty} \le \mathrm{strainSup}` | torus true-field から `L^\infty` 型の strain bound を取り出す | [PDE] | `toPrimitiveStrainRegularityData_of_true_fields_T3`, `sigma_Linfty_bound_derived`, `sigmaFromOpNorm` |
+| 819 | stretch_pointwise_dom_derived_of_true_fields_T3 | NSTorusMinimalPDEFrontier.lean | `\forall k,x,\ \|Sop_k(x)\omega_k(x)\| \le \|Sop_k(x)\| \cdot \|\omega_k(x)\|` | torus true-field から点ごとの stretching 支配を回収する | [PDE] | `toPrimitiveStrainRegularityData_of_true_fields_T3`, `stretch_pointwise_dom_derived`, `sigmaFromOpNorm` |
+
+### Layer 11 Addendum: PDE Regularity & Galerkin Existence (Derived)
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 820 | TorusSmoothInitialData [def] | NSTorusSmoothData.lean | `\omega_0 : T^3 \to \mathbb{C}^3,\ \omega_0 \in C^0(T^3)` | torus smooth-data branch の初期渦度データ | [Def] | `T3`, `Vec3`, `Continuous` |
+| 821 | memLp_two_of_continuous | NSTorusSmoothData.lean | `\omega \in C^0(T^3) \Rightarrow \omega \in L^2(T^3)` | compact torus 上の連続ベクトル場は自動的に `L^2(T^3)` に入る | [PDE] | `TorusSmoothInitialData`, `μT3`, `MemLp.of_bound` |
+| 822 | smooth_initial_data_implies_omega_mem_T3 | NSTorusSmoothData.lean | `\omega_0 \in L^2(T^3)` | smooth torus 初期データを current PDE frontier の `L^2` 入力に落とす | [PDE] | `memLp_two_of_continuous`, `TorusSmoothInitialData`, `μT3` |
+| 823 | TorusLocalWellposednessData [def] | NSTorusLocalWellposedness.lean | `(\omega_0, spec, T_0, h_{\mathrm{PL}})` | torus 初期データと Picard-Lindelöf ODE seed を同居させる局所存在パッケージ | [Def] | `TorusSmoothInitialData`, `GalerkinODESpec`, `IsPicardLindelof` |
+| 824 | initial_vorticity_mem_of_torus_local_wellposedness | NSTorusLocalWellposedness.lean | `\omega_0 \in L^2(T^3)` | torus 局所存在パッケージの初期渦度は PDE frontier の `L^2` 仮定を満たす | [PDE] | `smooth_initial_data_implies_omega_mem_T3`, `TorusLocalWellposednessData`, `μT3` |
+| 825 | localExistenceSeed_of_torus_local_wellposedness [def] | NSTorusLocalWellposedness.lean | `\mathrm{LocalExistenceSeed}(spec, T_0)` | torus 局所存在パッケージから continuation 層が使う `LocalExistenceSeed` を作る | [Def] | `localExistenceSeed_of_picardLindelof`, `TorusLocalWellposednessData`, `LocalExistenceSeed` |
+| 826 | smooth_local_solution_seed_on_T3 | NSTorusLocalWellposedness.lean | `\exists seed,\ seed.T_0 = T_0 \land \omega_0 \in L^2(T^3)` | smooth torus 初期データと Galerkin 局所 seed を 1 つの入口に束ねる | [ODE] | `localExistenceSeed_of_torus_local_wellposedness`, `initial_vorticity_mem_of_torus_local_wellposedness`, `LocalExistenceSeed` |
+| 827 | TorusActualSolutionPackage [def] | NSTorusSolutionPackage.lean | `(\mathrm{true\ field}, \mathrm{localData}, \mathrm{shellStepData})` | torus PDE input・local seed・shellwise enstrophy identity をまとめる実パッケージ | [Def] | `TorusTrueFieldMinimalPDEData`, `TorusLocalWellposednessData`, `GalerkinShellStepIdentityData` |
+| 828 | torusEnstrophyTrajectory [def] | NSTorusSolutionPackage.lean | `E(n) := \sum_k \Xi_n(k)` | shellwise Galerkin データから総エンストロフィ軌道を定義する | [Def] | `shellTotalEnstrophy`, `TorusActualSolutionPackage`, `Xi` |
+| 829 | localExistenceSeed_of_actual_solution_package_T3 [def] | NSTorusSolutionPackage.lean | `\mathrm{LocalExistenceSeed}(pkg.localData.spec, T_0)` | torus actual solution package から局所 existence seed を取り出す | [Def] | `localExistenceSeed_of_torus_local_wellposedness`, `TorusActualSolutionPackage`, `LocalExistenceSeed` |
+| 830 | initial_vorticity_mem_of_actual_solution_package_T3 | NSTorusSolutionPackage.lean | `\omega_0 \in L^2(T^3)` | packaged torus 初期渦度が依然として PDE frontier の `L^2` 入力であることを示す | [PDE] | `initial_vorticity_mem_of_torus_local_wellposedness`, `TorusActualSolutionPackage`, `μT3` |
+| 831 | true_fields_imply_minimal_pde_frontier_of_actual_solution_package_T3 | NSTorusSolutionPackage.lean | `(\forall k,\ \sigma_k \in L^\infty) \land (\forall k,\ Sop_k \omega_k \in L^2)` | torus actual solution package の true-field 成分が minimal PDE frontier を満たす | [PDE] | `true_fields_imply_minimal_pde_frontier_T3`, `TorusActualSolutionPackage`, `sigmaFromOpNorm` |
+| 832 | enstrophy_step_identity_of_actual_solution_package_T3 | NSTorusSolutionPackage.lean | `E_{n+1} - E_n = \mathrm{shellNetSource}(\mathrm{intTraj}_n,\mathrm{univ})` | packaged shellwise Galerkin data から exact one-step enstrophy identity を得る | [ODE] | `step_total_eq`, `torusEnstrophyTrajectory`, `shellNetSource` |
+| 833 | toGalerkinEnstrophyIdentityData_of_actual_solution_package_T3 [def] | NSTorusSolutionPackage.lean | `\mathrm{TorusActualSolutionPackage} \to \mathrm{GalerkinEnstrophyIdentityData}` | torus actual solution package を discrete Grönwall 用 identity data に変換する | [Def] | `toGalerkinEnstrophyIdentityData`, `TorusActualSolutionPackage`, `GalerkinEnstrophyIdentityData` |
+| 834 | actual_solution_package_with_enstrophy_trajectory_T3 | NSTorusSolutionPackage.lean | `\exists seed,\ \omega_0 \in L^2(T^3) \land \sigma \in L^\infty \land Sop\,\omega_k \in L^2 \land E_{n+1}-E_n = \mathrm{Net}_n` | torus actual solution package が continuation/no-blowup に必要な全入力を同時に供給する | [ODE] | `localExistenceSeed_of_actual_solution_package_T3`, `true_fields_imply_minimal_pde_frontier_of_actual_solution_package_T3`, `enstrophy_step_identity_of_actual_solution_package_T3` |
+
+### Layer 12 Addendum: Master Theorems (Paper Main Results)
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 835 | local_seed_of_torus_global_regularity [def] | NSTorusGlobalRegularity.lean | `seed(d) := \mathrm{LocalExistenceSeed}(d)` | torus global regularity wrapper が使う canonical local seed | [Def] | `localExistenceSeed_of_actual_solution_package_T3`, `TorusNoBlowupData`, `LocalExistenceSeed` |
+| 836 | torus_global_smooth_solution_of_smooth_data | NSTorusGlobalRegularity.lean | `(\forall n,\ \exists B,\ E_n \le B) \land (\forall n,\ \mathrm{bootstrapStrainSup}_n = F((1+MC)^nE_0)+\mathrm{strainHigh}) \land (\forall n,\ 0 \le T_0+n\Delta t)` | T³ 上で smooth data から global smooth solution を得る B branch の最終定理 | [PDE] | `torus_no_finite_time_blowup_of_smooth_data`, `continuation_master`, `bootstrapStrainSup` |
+| 837 | frontier_failure_realized_by_actual_torus_breakdown | NSTorusFrontierFailureRealization.lean | `\exists pkg,\ \mathrm{torus\_breakdown\_predicate}(pkg) \land (\mathrm{MillenniumFrontierHypothesis} \to \mathrm{False})` | frontier failure が抽象否定ではなく actual torus breakdown witness で実現されることを示す | [PDE] | `torus_breakdown_of_counterexample_data`, `torus_breakdown_implies_frontier_failure`, `TorusActualSolutionPackage` |
+| 838 | exists_torus_breakdown_counterexample | NSTorusBreakdownExistence.lean | `\exists ce,\ \mathrm{torus\_breakdown\_predicate}(ce.witness.pkg) \land (\mathrm{MillenniumFrontierHypothesis} \to \mathrm{False})` | D branch の最終定理として smooth torus counterexample package の存在を定式化する | [PDE] | `torus_breakdown_of_counterexample_data`, `torus_breakdown_implies_frontier_failure`, `TorusSmoothCounterexampleData` |
+
+### Layer 13 Addendum: Bootstrap / Continuation / No-Blowup
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 839 | TorusNoBlowupData [def] | NSTorusNoBlowup.lean | `(\mathrm{limitData}, \mathrm{continuationData}, modes, F_{\mathrm{low}})` | torus limit-closure と continuation/no-blowup 定数を束ねる B4 パッケージ | [Def] | `TorusLimitClosureData`, `InductiveContinuationData`, `torusUniformF` |
+| 840 | shiftedLimitEnstrophy [def] | NSTorusNoBlowup.lean | `\widetilde E(n) := E_{\lim}(N_0+n)` | compactness 基準時刻 `N_0` から見た limit enstrophy 軌道 | [Def] | `TorusNoBlowupData`, `Elim`, `N0` |
+| 841 | millennium_frontier_hypothesis_of_torus_no_blowup_data [def] | NSTorusNoBlowup.lean | `\mathrm{MillenniumFrontierHypothesis}(F = F_{\mathrm{low}})` | no-blowup wrapper に concrete torus frontier hypothesis を載せる | [Def] | `torusUniformF_nonneg`, `torusUniformF_mono`, `TorusNoBlowupData` |
+| 842 | shifted_limit_gronwall_of_torus_no_blowup_data | NSTorusNoBlowup.lean | `\widetilde E(n) \le (1+MC)^n E_0` | torus limit closure の離散 Grönwall 法則を no-blowup 形式に書き換える | [Alg] | `torus_limit_solution_inherits_closure`, `shiftedLimitEnstrophy`, `TorusNoBlowupData` |
+| 843 | torus_no_finite_time_blowup_of_smooth_data | NSTorusNoBlowup.lean | `(\forall n,\ \exists B,\ \widetilde E(n)\le B) \land (\forall n,\ 0 \le \mathrm{bootstrapStrainSup}_n) \land (\forall n,\ 0 \le T_0+n\Delta t)` | smooth torus data に対して finite-time blow-up が起きないことをまとめて与える | [Alg] | `no_blowup_master`, `shifted_limit_gronwall_of_torus_no_blowup_data`, `bootstrapStrainSup` |
+| 844 | DiscreteBlowupAt [def] | NSTorusBreakdownDefinition.lean | `\forall B \in \mathbb{R},\ E(n_\ast) > B` | 固定時刻での離散 enstrophy blow-up の定義 | [Def] | `torusEnstrophyTrajectory` |
+| 845 | DiscreteBreakdown [def] | NSTorusBreakdownDefinition.lean | `\exists n_\ast,\ \mathrm{DiscreteBlowupAt}(E,n_\ast)` | 離散 breakdown の存在を表す定義 | [Def] | `DiscreteBlowupAt`, `torusEnstrophyTrajectory` |
+| 846 | TorusBreakdownWitness [def] | NSTorusBreakdownDefinition.lean | `(pkg, n_\ast, h_{\mathrm{blowup}})` | torus actual solution package 上の離散 breakdown witness | [Def] | `TorusActualSolutionPackage`, `DiscreteBlowupAt`, `torusEnstrophyTrajectory` |
+| 847 | torus_breakdown_predicate [def] | NSTorusBreakdownDefinition.lean | `\mathrm{DiscreteBreakdown}( \mathrm{torusEnstrophyTrajectory}(pkg))` | torus solution package に付随する breakdown predicate | [Def] | `DiscreteBreakdown`, `torusEnstrophyTrajectory`, `TorusActualSolutionPackage` |
+| 848 | discreteBreakdown_iff | NSTorusBreakdownDefinition.lean | `\mathrm{DiscreteBreakdown}(E) \leftrightarrow \exists n_\ast,\ \mathrm{DiscreteBlowupAt}(E,n_\ast)` | 離散 breakdown の定義を展開した同値形 | [Alg] | `DiscreteBreakdown`, `DiscreteBlowupAt` |
+| 849 | torus_breakdown_predicate_iff | NSTorusBreakdownDefinition.lean | `\mathrm{torus\_breakdown\_predicate}(pkg) \leftrightarrow \exists n_\ast,\ \mathrm{DiscreteBlowupAt}(E_{pkg},n_\ast)` | torus breakdown predicate の展開形 | [Alg] | `torus_breakdown_predicate`, `DiscreteBlowupAt`, `torusEnstrophyTrajectory` |
+| 850 | TorusBreakdownWitness.to_discreteBreakdown | NSTorusBreakdownDefinition.lean | `w \Rightarrow \mathrm{torus\_breakdown\_predicate}(w.pkg)` | 明示的 witness から抽象 breakdown predicate を得る | [Alg] | `torus_breakdown_predicate`, `DiscreteBreakdown`, `TorusBreakdownWitness` |
+| 851 | TorusSmoothCounterexampleData [def] | NSTorusCounterexampleData.lean | `(\omega_0, witness, h_{\mathrm{initial}})` | smooth torus datum と breakdown witness を同じ package に束ねる D2 データ | [Def] | `TorusSmoothInitialData`, `TorusBreakdownWitness`, `torus_breakdown_predicate` |
+| 852 | smooth_initial_data_of_counterexample | NSTorusCounterexampleData.lean | `\omega_0 \in C^0(T^3)` | counterexample package の初期データが smooth-data branch の意味で滑らかであることを確認する | [PDE] | `TorusSmoothCounterexampleData`, `TorusSmoothInitialData` |
+| 853 | initial_vorticity_mem_of_counterexample | NSTorusCounterexampleData.lean | `\omega_0 \in L^2(T^3)` | counterexample package の初期渦度が frontier の `L^2` 入力を満たす | [PDE] | `smooth_initial_data_implies_omega_mem_T3`, `TorusSmoothCounterexampleData`, `μT3` |
+| 854 | torus_breakdown_of_counterexample_data | NSTorusCounterexampleData.lean | `\mathrm{torus\_breakdown\_predicate}(pkg)` | counterexample package に含まれる witness から breakdown predicate を回収する | [Alg] | `TorusBreakdownWitness.to_discreteBreakdown`, `TorusSmoothCounterexampleData`, `torus_breakdown_predicate` |
+| 855 | smooth_counterexample_data_T3 | NSTorusCounterexampleData.lean | `\exists data,\ data = \omega_0 \land \omega_0 \in C^0(T^3) \land \omega_0 \in L^2(T^3) \land \mathrm{torus\_breakdown\_predicate}(pkg)` | same actual package 上で smooth initial data と breakdown witness が両立することを明示化する | [PDE] | `initial_vorticity_mem_of_counterexample`, `torus_breakdown_of_counterexample_data`, `TorusSmoothCounterexampleData` |
+| 856 | TorusBreakdownFrontierData [def] | NSTorusBreakdownToFrontier.lean | `(\mathrm{counterexampleData}, M, C, E_0, h_{\mathrm{gronwall\ from\ frontier}})` | breakdown witness と frontier 仮説下の Grönwall bound を突き合わせる D3 データ | [Def] | `TorusSmoothCounterexampleData`, `MillenniumFrontierHypothesis`, `torusEnstrophyTrajectory` |
+| 857 | torus_breakdown_implies_frontier_failure | NSTorusBreakdownToFrontier.lean | `\mathrm{MillenniumFrontierHypothesis} \to \mathrm{False}` | torus breakdown witness が存在すれば対応する frontier hypothesis は破綻する | [Alg] | `blowup_at_fixed_step_implies_contradiction`, `smooth_counterexample_data_T3`, `TorusBreakdownFrontierData` |
+
+### Layer 14 Addendum: Uniform Estimates & Compactness
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 858 | TorusLimitClosureData [def] | NSTorusLimitClosure.lean | `(\mathrm{solutionPkg}, \mathrm{stateData}, \mathrm{compactnessData}, M, C)` | torus compactness 極限と abstract limit-closure stability を同一化する B3 データ束 | [Def] | `TorusActualSolutionPackage`, `CompactnessConvergenceStateData`, `LimitClosureStabilityData` |
+| 859 | hElim_tendsto_of_torus_limit_data | NSTorusLimitClosure.lean | `E_j(N_0+n) \to E_{\lim}(N_0+n)` | torus compactness data から extracted enstrophy trajectory の点wise極限を得る | [Alg] | `hElim_tendsto_of_state_compactness`, `TorusLimitClosureData`, `coeffOfStateLim` |
+| 860 | hDlim_tendsto_of_torus_limit_data | NSTorusLimitClosure.lean | `D_j(N_0+n) \to D_{\lim}(N_0+n)` | torus compactness data から low-shell dissipation trajectory の極限を得る | [Alg] | `hDlim_tendsto_of_state_compactness`, `TorusLimitClosureData`, `lowShells` |
+| 861 | toLimitClosureStabilityData_of_torus [def] | NSTorusLimitClosure.lean | `\mathrm{TorusLimitClosureData} \to \mathrm{LimitClosureStabilityData}` | torus 側 compactness package を abstract limit closure stability data に変換する | [Def] | `hElim_tendsto_of_torus_limit_data`, `hDlim_tendsto_of_torus_limit_data`, `LimitClosureStabilityData` |
+| 862 | torus_limit_solution_inherits_closure | NSTorusLimitClosure.lean | `E_{\lim}(N_0+n) \le (1+MC)^n E_{\lim}(N_0)` | torus 極限解が Galerkin family と同じ discrete closure / Grönwall 法則を継承する | [Alg] | `toLimitClosureStabilityData_of_torus`, `limit_closure_stability_master`, `TorusLimitClosureData` |
+
+### Layer 15 Addendum: K_max-Uniform Analysis
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 863 | torusUniformF [def] | NSTorusUniformF.lean | `F_{\mathrm{low}}(B) = \mathrm{bernsteinConstant}(modes) \cdot N_{\mathrm{cut}} \cdot \sqrt{B}` | finite-Fourier Bernstein 鎖から出る concrete torus low-shell regeneration 関数 | [Def] | `sqrtClosure`, `bernsteinConstant`, `Mode` |
+| 864 | torusUniformF_eq | NSTorusUniformF.lean | `torusUniformF(B) = \mathrm{bernsteinConstant}(modes)\,N_{\mathrm{cut}}\sqrt{B}` | torus uniform closure function の具体式を展開する | [Alg] | `torusUniformF`, `sqrtClosure`, `bernsteinConstant` |
+| 865 | torusUniformF_mono | NSTorusUniformF.lean | `B_1 \le B_2 \Rightarrow F_{\mathrm{low}}(B_1) \le F_{\mathrm{low}}(B_2)` | torus low-shell regeneration 関数が単調増加であることを示す | [Alg] | `torusUniformF`, `monotone_sqrtClosure`, `bernsteinConstant` |
+| 866 | torusUniformF_nonneg | NSTorusUniformF.lean | `B \ge 0 \Rightarrow F_{\mathrm{low}}(B) \ge 0` | torus low-shell regeneration 関数の非負性 | [Alg] | `torusUniformF`, `nonneg_sqrtClosure`, `bernsteinConstant` |
+| 867 | torusUniformF_Kmax_independent | NSTorusUniformF.lean | `\forall K_1,K_2,\ F_{K_1} = F_{K_2}` | fixed low-mode set と cutoff のもとで `F_{\mathrm{low}}` が `K_{\max}` に依らないことを明示する | [Alg] | `torusUniformF`, `Mode`, `Ncut` |
+| 868 | torusUniformStrainBoundHypothesis [def] | NSTorusUniformF.lean | `(\,F = torusUniformF,\ F \ge 0,\ F \text{ monotone}\,)` | uniform bootstrap layer が要求する strain-bound hypothesis を concrete torus 関数で与える | [Def] | `torusUniformF_nonneg`, `torusUniformF_mono`, `UniformStrainBoundHypothesis` |
+| 869 | F_low_Kmax_independent_on_T3 | NSTorusUniformF.lean | `\exists F,\ F = torusUniformF \land (\forall B \ge 0,\ F(B)\ge 0) \land \mathrm{Monotone}(F)` | T³ で finite-band closure function が `K_{\max}` 非依存であることを記録する B1 frontier 定理 | [Alg] | `torusUniformF`, `torusUniformF_nonneg`, `torusUniformF_mono` |
+| 870 | millennium_frontier_hypothesis_of_torus_uniformF [def] | NSMillenniumFrontier.lean | `\mathrm{MillenniumFrontierHypothesis}(F = torusUniformF)` | concrete torus uniform closure function を Millennium Frontier Hypothesis に実装する | [Def] | `torusUniformF_nonneg`, `torusUniformF_mono`, `MillenniumFrontierHypothesis` |
+
+## Addendum: E1-E6 R³ Branch Sync (2026-04-17)
+
+### Layer 8 Addendum: Euclidean Fourier / PDE Interface
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 871 | actualR3LowCutoffComplex [def] | NSR3LittlewoodPaleyActual.lean | `f \mapsto \chi_{\{|\xi|\le 2^{N_{\mathrm{cut}}}\}} f` | `L²(R³)` を frequency-side と見た concrete low-cutoff multiplier | [Def] | `lpCutoffMultiplier`, `lowCutoffMultiplierLp`, `L2VecR3` |
+| 872 | actualR3ShellProjFamily [def] | NSR3LittlewoodPaleyActual.lean | `f \mapsto \chi_{\{2^k \le |\xi| < 2^{k+1}\}} f` | Euclidean dyadic shell を pointwise multiplier として実装した actual projector family | [Def] | `actualR3ShellProjComplex`, `shellMultiplierLp`, `L2VecR3` |
+| 873 | actualR3ShellProjectorData [def] | NSR3LittlewoodPaleyActual.lean | `(\,Pk_k = \mathrm{actualR3ShellProjFamily}_k,\ \|Pk_k z\|\le \|z\|\,)` | abstract barrier chain が使う `ShellProjectorData` に Euclidean actual shell projector を載せる | [Def] | `actualR3ShellProjFamily`, `ShellProjectorData`, `lpCutoffMultiplier_norm_le` |
+| 874 | actualR3ShellProjFamily_contraction | NSR3ProjectorContraction.lean | `\|\mathrm{actualR3ShellProjFamily}_k f\| \le \|f\|` | Euclidean shell projector が `L²(R³)` で contraction であることを明示化する | [Alg] | `actualR3ShellProjectorData`, `actualR3ShellProjFamily`, `ShellProjectorData` |
+| 875 | R3ActualProjectedFieldData [def] | NSR3ProjectorShellEquality.lean | `(\omega,\omega_k,\sigma,\sigma\omega_k,\mathrm{strainSup})` | actual Euclidean projector family と projected-field interface を接続する実データ束 | [Def] | `actualR3ShellProjectorData`, `actualR3ShellProjFamily`, `MemLp` |
+| 876 | shellOmegaLp_eq_projector_of_R3_actual | NSR3ProjectorShellEquality.lean | `\omega_k = \mathrm{actualR3ShellProjFamily}_k(\omega)` | Euclidean projected shell vorticityが actual shell projector そのものであることを記録する | [PDE] | `R3ActualProjectedFieldData`, `toNavierStokesProjectedLpCoreData`, `actualR3ShellProjFamily` |
+| 877 | R3ShellSigmaBoundProofData [def] | NSR3ActualSigmaBound.lean | `(\,Sop,\ \mathrm{strainSup},\ \sigma=\|Sop\|_{\mathrm{op}}\,)` | `sigmaFromOpNormR3` の `L^\infty` bound を担う Euclidean 証明データ | [Def] | `sigmaFromOpNormR3`, `MemLp`, `μR3` |
+| 878 | sigma_bound_of_ae_bound_R3 | NSR3ActualSigmaBound.lean | `\|\sigma_k\|_{L^\infty(R^3)} \le \mathrm{strainSup}` | a.e. pointwise bound から Euclidean `L^\infty` strain bound を回収する | [PDE] | `R3ShellSigmaBoundProofData`, `sigmaFromOpNormR3`, `eLpNormEssSup` |
+| 879 | R3NavierStokesTrueFieldData [def] | NSR3ActualTrueFields.lean | `(\omega,\omega_k,Sop,stretch,\sigma\omega_k,\mathrm{strainSup})` | `R³` actual true-field chain の本体となる Euclidean 実データ束 | [Def] | `actualR3ShellProjFamily`, `sigmaFromOpNormR3`, `MemLp` |
+| 880 | toPrimitiveR3StrainRegularityData_of_true_fields_R3 [def] | NSR3ActualTrueFields.lean | `\mathrm{R3NavierStokesTrueFieldData} \to \mathrm{PrimitiveR3StrainRegularityData}` | Euclidean actual true fields を paper-facing primitive PDE frontier に変換する | [Def] | `R3NavierStokesTrueFieldData`, `Sop_ae_bound_of_true_fields_R3_actual`, `stretch_dom_from_shell_of_true_fields_R3_actual` |
+| 881 | true_fields_imply_minimal_pde_frontier_R3_actual | NSR3ActualTrueFields.lean | `(\forall k,\ \sigma_k \in L^\infty(R^3)) \land (\forall k,\ Sop_k \omega_k \in L^2(R^3))` | actual Euclidean true fields が minimal PDE frontier の残り仮定を満たす | [PDE] | `toPrimitiveR3StrainRegularityData_of_true_fields_R3`, `true_fields_imply_minimal_pde_frontier_R3`, `sigmaFromOpNormR3` |
+| 882 | productionFromStrainSup_of_R3_true_fields | NSR3NavierStokesActual.lean | `ProductionFromStrainSup(P_{\mathrm{loc}},S_{\mathrm{state}})` | actual `R³` true fields から barrier 側の `ProductionFromStrainSup` を得る | [PDE] | `R3NavierStokesTrueFieldData`, `sigma_Linfty_bound_of_true_fields_R3`, `actualR3ShellProjFamily` |
+
+### Layer 11 Addendum: Euclidean PDE Regularity & Solution Packages
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 883 | ActualR3BernsteinData [def] | NSR3BernsteinProof.lean | `(\,N_{\mathrm{cut}},\ \mathrm{localStrainAmp},\ \mathrm{localH1Energy},\ |\hat f|\,)` | Euclidean finite-volume support から Bernstein constant を導く actual coefficient-side データ | [Def] | `lowFrequencyCutoff`, `r3BernsteinConstant`, `MemLp` |
+| 884 | r3_localStrainAmp_le_bernsteinConstant_mul_localH1Energy | NSR3BernsteinProof.lean | `\mathrm{localStrainAmp} \le C_{\mathrm{bern}}^{R^3}(N_{\mathrm{cut}})\,\mathrm{localH1Energy}` | Euclidean finite-band Bernstein inequality を theorem として実装する | [PDE] | `ActualR3BernsteinData`, `r3_coeffLpOne_le_bernsteinConstant_mul_coeffLpTwo`, `lowFrequencyCutoff_measure_toReal` |
+| 885 | ActualR3FiniteBandClosureData [def] | NSR3FiniteBandSobolevBridge.lean | `(\mathrm{traj},E,E_{\mathrm{shell}},\mathrm{supportData},|\hat f|)` | theorem-backed Euclidean Bernstein constant を既存 finite-band closure chain に渡す実データ束 | [Def] | `ActualUnitWidthSupportExclusionData`, `lowShellEnergy`, `ActualR3BernsteinData` |
+| 886 | r3_finite_band_closure_actual | NSR3FiniteBandSobolevBridge.lean | `\exists N_0,B,\ E(N_0+m)\le (1+MC)^m E(N_0)` | actual Euclidean finite-band Bernstein inequality から離散 Grönwall closure を得る | [Alg] | `toActualFiniteBandBernsteinXiData`, `r3_localStrain_sqrt`, `eventual_discrete_gronwall_of_finiteBandBernsteinXi` |
+| 887 | R3LocalWellposednessData [def] | NSR3LocalWellposedness.lean | `(\omega_0,\ spec,\ T_0,\ h_{\mathrm{PL}})` | Euclidean initial datumと Picard-Lindelöf Galerkin seed を束ねる局所存在パッケージ | [Def] | `GalerkinODESpec`, `IsPicardLindelof`, `MemLp` |
+| 888 | initial_vorticity_mem_of_R3_local_wellposedness | NSR3LocalWellposedness.lean | `\omega_0 \in L^2(R^3)` | Euclidean 局所存在パッケージの初期渦度が PDE frontier の `L²(R³)` 入力を満たす | [PDE] | `R3LocalWellposednessData`, `μR3`, `MemLp` |
+| 889 | smooth_local_solution_seed_on_R3 | NSR3LocalWellposedness.lean | `\exists seed,\ seed.T_0=T_0 \land \omega_0 \in L^2(R^3)` | Euclidean smooth initial datumと Galerkin 局所 seed を同じ入口に束ねる | [ODE] | `localExistenceSeed_of_R3_local_wellposedness`, `initial_vorticity_mem_of_R3_local_wellposedness`, `LocalExistenceSeed` |
+| 890 | R3ActualSolutionPackage [def] | NSR3SolutionPackage.lean | `(\mathrm{trueData},\mathrm{localData},\mathrm{shellStepData})` | Euclidean PDE input・local seed・shellwise enstrophy identity をまとめる actual solution package | [Def] | `R3NavierStokesTrueFieldData`, `R3LocalWellposednessData`, `GalerkinShellStepIdentityData` |
+| 891 | r3EnstrophyTrajectory [def] | NSR3SolutionPackage.lean | `E(n):=\sum_k \Xi_n(k)` | Euclidean actual solution package に付随する総エンストロフィ軌道 | [Def] | `shellTotalEnstrophy`, `R3ActualSolutionPackage`, `Xi` |
+| 892 | initial_vorticity_mem_of_actual_solution_package_R3 | NSR3SolutionPackage.lean | `\omega_0 \in L^2(R^3)` | packaged Euclidean 初期渦度が依然として frontier の `L²(R³)` 入力であることを示す | [PDE] | `R3ActualSolutionPackage.pdeData`, `initial_vorticity_mem_of_R3_local_wellposedness`, `μR3` |
+| 893 | true_fields_imply_minimal_pde_frontier_of_actual_solution_package_R3 | NSR3SolutionPackage.lean | `(\forall k,\ \sigma_k \in L^\infty(R^3)) \land (\forall k,\ Sop_k\omega_k \in L^2(R^3))` | Euclidean actual solution package の true-field 成分が minimal PDE frontier を満たす | [PDE] | `true_fields_imply_minimal_pde_frontier_R3_actual`, `R3ActualSolutionPackage`, `sigmaFromOpNormR3` |
+| 894 | productionFromStrainSup_of_actual_solution_package_R3 | NSR3SolutionPackage.lean | `ProductionFromStrainSup(P_{\mathrm{loc}},S_{\mathrm{state}})` | packaged Euclidean true-field 成分から barrier 側 production hypothesis を回収する | [PDE] | `productionFromStrainSup_of_R3_true_fields`, `R3ActualSolutionPackage`, `NSStrainAction` |
+| 895 | enstrophy_step_identity_of_actual_solution_package_R3 | NSR3SolutionPackage.lean | `E_{n+1}-E_n = \mathrm{shellNetSource}(\mathrm{intTraj}_n,\mathrm{univ})` | Euclidean packaged shellwise Galerkin data から exact one-step enstrophy identity を得る | [ODE] | `step_total_eq`, `r3EnstrophyTrajectory`, `shellNetSource` |
+| 896 | R3_actual_solution_package_with_enstrophy_trajectory | NSR3SolutionPackage.lean | `\exists seed,\ \omega_0 \in L^2(R^3) \land \sigma \in L^\infty(R^3) \land Sop\,\omega_k \in L^2(R^3) \land E_{n+1}-E_n=\mathrm{Net}_n` | Euclidean actual solution package が continuation / frontier 層に必要な全入力を同時に供給する | [ODE] | `initial_vorticity_mem_of_actual_solution_package_R3`, `true_fields_imply_minimal_pde_frontier_of_actual_solution_package_R3`, `enstrophy_step_identity_of_actual_solution_package_R3` |
+
+### Layer 12 Addendum: Euclidean Breakdown Branch
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 897 | R3BreakdownWitness [def] | NSR3BreakdownDefinition.lean | `(pkg,n_\ast,h_{\mathrm{blowup}})` | actual Euclidean solution package 上の離散 breakdown witness | [Def] | `R3ActualSolutionPackage`, `DiscreteBlowupAt`, `r3EnstrophyTrajectory` |
+| 898 | R3_breakdown_predicate [def] | NSR3BreakdownDefinition.lean | `\mathrm{DiscreteBreakdown}(\mathrm{r3EnstrophyTrajectory}(pkg))` | Euclidean solution package に付随する breakdown predicate | [Def] | `DiscreteBreakdown`, `r3EnstrophyTrajectory`, `R3ActualSolutionPackage` |
+| 899 | R3SmoothInitialData [def] | NSR3CounterexampleData.lean | `\omega_0 : R^3 \to \mathbb{C}^3,\ \omega_0 \in C^0 \cap L^2` | `R³` では連続性だけでは足りないため `C^0` と `L^2` を同時に持つ初期データ | [Def] | `Vec3`, `Continuous`, `MemLp` |
+| 900 | R3SmoothCounterexampleData [def] | NSR3CounterexampleData.lean | `(\omega_0,\ witness,\ h_{\mathrm{initial}})` | Euclidean smooth datum と breakdown witness を同じ package に束ねる C6 データ | [Def] | `R3SmoothInitialData`, `R3BreakdownWitness`, `R3_breakdown_predicate` |
+| 901 | R3_counterexample_data | NSR3CounterexampleData.lean | `\exists data,\ data=\omega_0 \land \omega_0 \in C^0 \land \omega_0 \in L^2(R^3) \land \mathrm{R3\_breakdown\_predicate}(pkg)` | same actual package 上で Euclidean smooth initial data と breakdown witness が両立することを明示化する | [PDE] | `initial_vorticity_mem_of_counterexample_R3`, `R3_breakdown_of_counterexample_data`, `R3SmoothCounterexampleData` |
+| 902 | R3BreakdownFrontierData [def] | NSR3BreakdownToFrontier.lean | `(\mathrm{counterexampleData},M,C,E_0,h_{\mathrm{gronwall\ from\ frontier}})` | Euclidean breakdown witness と frontier 仮説下の Grönwall bound を突き合わせる E5 データ | [Def] | `R3SmoothCounterexampleData`, `MillenniumFrontierHypothesis`, `r3EnstrophyTrajectory` |
+| 903 | R3_breakdown_implies_frontier_failure | NSR3BreakdownToFrontier.lean | `\mathrm{MillenniumFrontierHypothesis} \to \mathrm{False}` | Euclidean breakdown witness が存在すれば対応する frontier hypothesis は破綻する | [Alg] | `blowup_at_fixed_step_implies_contradiction`, `R3_counterexample_data`, `R3BreakdownFrontierData` |
+| 904 | frontier_failure_realized_by_actual_R3_breakdown | NSR3FrontierFailureRealization.lean | `\exists pkg,\ \mathrm{R3\_breakdown\_predicate}(pkg) \land (\mathrm{MillenniumFrontierHypothesis} \to \mathrm{False})` | frontier failure が抽象否定ではなく actual Euclidean breakdown witness で実現されることを示す | [PDE] | `R3_breakdown_of_counterexample_data`, `R3_breakdown_implies_frontier_failure`, `R3ActualSolutionPackage` |
+| 905 | R3CounterexampleConclusion [def] | NSR3BreakdownExistence.lean | `\mathrm{R3\_breakdown\_predicate}(pkg) \land (\mathrm{MillenniumFrontierHypothesis}\to\mathrm{False})` | E6 で採用した D5-style final theorem surface を表す結論述語 | [Def] | `R3_breakdown_predicate`, `MillenniumFrontierHypothesis`, `R3SmoothCounterexampleData` |
+| 906 | R3CounterexampleRegularityConclusion [def] | NSR3BreakdownExistence.lean | `\omega_0 \in C^0(R^3) \land \omega_0 \in L^2(R^3)` | Euclidean branch が保持する追加 regularity payload を切り出した補助述語 | [Def] | `R3SmoothCounterexampleData`, `Continuous`, `MemLp` |
+| 907 | exists_breakdown_counterexample_R3 | NSR3BreakdownExistence.lean | `\exists ce,\ \mathrm{R3CounterexampleConclusion}(ce)` | `R³` branch の final theorem surface を torus D5 と同型にそろえた最終定理 | [PDE] | `R3_breakdown_implies_frontier_failure`, `R3_breakdown_of_counterexample_data`, `R3SmoothCounterexampleData` |
+| 908 | exists_breakdown_counterexample_R3_with_regularity | NSR3BreakdownExistence.lean | `\exists ce,\ \mathrm{R3CounterexampleConclusion}(ce) \land \mathrm{R3CounterexampleRegularityConclusion}(ce)` | D5-style final theorem を保ったまま Euclidean `C^0 \cap L^2` 入力情報も同時に保持する companion theorem | [PDE] | `exists_breakdown_counterexample_R3`, `smooth_initial_data_of_counterexample_R3`, `initial_vorticity_mem_of_counterexample_R3` |
+
+## Addendum: R³(A) Global Regularity Sync (2026-04-17)
+
+### Layer 15 Addendum: Euclidean K_max-Uniform Frontier
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 909 | r3UniformF [def] | NSR3UniformF.lean | `F_{\mathrm{low}}(B) = C_{\mathrm{bern}}^{R^3}(N_{\mathrm{cut}})\sqrt{B}` | theorem-backed Euclidean Bernstein 鎖から出る concrete `R³` low-shell regeneration 関数 | [Def] | `sqrtClosure`, `r3BernsteinConstant`, `NSFiniteBandBernsteinActual` |
+| 910 | r3UniformF_eq | NSR3UniformF.lean | `r3UniformF(B) = C_{\mathrm{bern}}^{R^3}(N_{\mathrm{cut}})\sqrt{B}` | Euclidean uniform closure function の具体式を展開する | [Alg] | `r3UniformF`, `sqrtClosure`, `r3BernsteinConstant` |
+| 911 | r3UniformF_mono | NSR3UniformF.lean | `B_1 \le B_2 \Rightarrow F_{\mathrm{low}}(B_1) \le F_{\mathrm{low}}(B_2)` | Euclidean low-shell regeneration 関数が単調増加であることを示す | [Alg] | `r3UniformF`, `monotone_sqrtClosure`, `r3BernsteinConstant_nonneg` |
+| 912 | r3UniformF_nonneg | NSR3UniformF.lean | `B \ge 0 \Rightarrow F_{\mathrm{low}}(B) \ge 0` | Euclidean low-shell regeneration 関数の非負性 | [Alg] | `r3UniformF`, `nonneg_sqrtClosure`, `r3BernsteinConstant_nonneg` |
+| 913 | r3UniformF_Kmax_independent | NSR3UniformF.lean | `\forall K_1,K_2,\ F_{K_1} = F_{K_2}` | cutoff `N_{\mathrm{cut}}` を固定すると Euclidean `F_{\mathrm{low}}` が `K_{\max}` に依らないことを明示する | [Alg] | `r3UniformF`, `r3BernsteinConstant`, `Ncut` |
+| 914 | r3UniformStrainBoundHypothesis [def] | NSR3UniformF.lean | `(\,F = r3UniformF,\ F \ge 0,\ F \text{ monotone}\,)` | uniform bootstrap layer が要求する strain-bound hypothesis を concrete Euclidean 関数で与える | [Def] | `r3UniformF_nonneg`, `r3UniformF_mono`, `UniformStrainBoundHypothesis` |
+| 915 | F_low_Kmax_independent_on_R3 | NSR3UniformF.lean | `\exists F,\ F = r3UniformF \land (\forall B \ge 0,\ F(B)\ge 0) \land \mathrm{Monotone}(F)` | `R³` で finite-band closure function が `K_{\max}` 非依存であることを記録する A1 frontier 定理 | [Alg] | `r3UniformF`, `r3UniformF_nonneg`, `r3UniformF_mono` |
+| 916 | millennium_frontier_hypothesis_of_R3_uniformF [def] | NSR3MillenniumFrontier.lean | `\mathrm{MillenniumFrontierHypothesis}(F = r3UniformF)` | concrete Euclidean uniform closure function を Millennium Frontier Hypothesis に実装する | [Def] | `r3UniformF_nonneg`, `r3UniformF_mono`, `MillenniumFrontierHypothesis` |
+
+### Layer 16 Addendum: Euclidean Limit Closure & No-Blowup
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 917 | R3LimitClosureData [def] | NSR3LimitClosure.lean | `(\mathrm{solutionPkg}, \mathrm{stateData}, \mathrm{compactnessData}, N_{\mathrm{cut}}, M, C)` | Euclidean actual solution package と abstract compactness / limit-closure stability を同一化する A3 データ束 | [Def] | `R3ActualSolutionPackage`, `CompactnessConvergenceStateData`, `LimitClosureStabilityData` |
+| 918 | hElim_tendsto_of_R3_limit_data | NSR3LimitClosure.lean | `E_j(N_0+n) \to E_{\lim}(N_0+n)` | Euclidean compactness data から extracted enstrophy trajectory の点wise極限を得る | [Alg] | `hElim_tendsto_of_state_compactness`, `R3LimitClosureData`, `coeffOfStateLim` |
+| 919 | hDlim_tendsto_of_R3_limit_data | NSR3LimitClosure.lean | `D_j(N_0+n) \to D_{\lim}(N_0+n)` | Euclidean compactness data から low-shell dissipation trajectory の極限を得る | [Alg] | `hDlim_tendsto_of_state_compactness`, `R3LimitClosureData`, `lowShells` |
+| 920 | toLimitClosureStabilityData_of_R3 [def] | NSR3LimitClosure.lean | `\mathrm{R3LimitClosureData} \to \mathrm{LimitClosureStabilityData}` | Euclidean compactness package を abstract limit closure stability data に変換する | [Def] | `hElim_tendsto_of_R3_limit_data`, `hDlim_tendsto_of_R3_limit_data`, `LimitClosureStabilityData` |
+| 921 | R3_limit_solution_inherits_closure | NSR3LimitClosure.lean | `E_{\lim}(N_0+n) \le (1+MC)^n E_{\lim}(N_0)` | Euclidean 極限解が Galerkin family と同じ discrete closure / Grönwall 法則を継承する | [Alg] | `toLimitClosureStabilityData_of_R3`, `limit_closure_stability_master`, `R3LimitClosureData` |
+| 922 | R3NoBlowupData [def] | NSR3NoBlowup.lean | `(\mathrm{limitData}, \mathrm{continuationData}, F_{\mathrm{low}})` | Euclidean limit-closure と continuation/no-blowup 定数を束ねる A4 パッケージ | [Def] | `R3LimitClosureData`, `InductiveContinuationData`, `r3UniformF` |
+| 923 | shiftedLimitEnstrophy_R3 [def] | NSR3NoBlowup.lean | `\widetilde E(n) := E_{\lim}(N_0+n)` | Euclidean compactness base time `N_0` から見た shifted limit enstrophy trajectory | [Def] | `R3NoBlowupData`, `R3LimitClosureData`, `Elim` |
+| 924 | millennium_frontier_hypothesis_of_R3_no_blowup_data [def] | NSR3NoBlowup.lean | `\mathrm{MillenniumFrontierHypothesis}(F = F_{\mathrm{low}})` | no-blowup wrapper に concrete Euclidean frontier hypothesis を載せる | [Def] | `r3UniformF_nonneg`, `r3UniformF_mono`, `R3NoBlowupData` |
+| 925 | shifted_limit_gronwall_of_R3_no_blowup_data | NSR3NoBlowup.lean | `\widetilde E(n) \le (1+MC)^n E_0` | A3 の closure law を `NSNoBlowupMaster` が使う shifted trajectory 形式に書き直す | [Alg] | `R3_limit_solution_inherits_closure`, `shiftedLimitEnstrophy_R3`, `R3NoBlowupData` |
+| 926 | R3_no_finite_time_blowup_of_smooth_data | NSR3NoBlowup.lean | `(\forall n,\ \exists B,\ \widetilde E(n)\le B) \land (\forall n,\ 0 \le \mathrm{bootstrapStrainSup}_n) \land (\forall n,\ 0 \le T_0+n\Delta t)` | smooth Euclidean data に対して finite-time blow-up が起きないことをまとめて与える | [Alg] | `no_blowup_master`, `shifted_limit_gronwall_of_R3_no_blowup_data`, `bootstrapStrainSup` |
+
+### Layer 17 Addendum: Euclidean Global Regularity
+
+| # | theorem名 | ファイル名 | 数式（LaTeX） | 何を証明したか（日本語1行） | タグ | 依存する主要theorem |
+|---:|-----------|-----------|----------------|------------------------------|------|------------------|
+| 927 | local_seed_of_R3_global_regularity [def] | NSR3GlobalRegularity.lean | `seed(d) := \mathrm{LocalExistenceSeed}(d)` | Euclidean global regularity wrapper が使う canonical local seed | [Def] | `localExistenceSeed_of_actual_solution_package_R3`, `R3NoBlowupData`, `LocalExistenceSeed` |
+| 928 | R3_global_smooth_solution_of_smooth_data | NSR3GlobalRegularity.lean | `(\forall n,\ \exists B,\ \widetilde E(n)\le B) \land (\forall n,\ \mathrm{bootstrapStrainSup}_n = F((1+MC)^nE_0)+\mathrm{strainHigh}) \land (\forall n,\ 0 \le T_0+n\Delta t)` | `R³` 上で smooth data から global smooth solution を得る A branch の最終定理 | [PDE] | `R3_no_finite_time_blowup_of_smooth_data`, `continuation_master`, `bootstrapStrainSup` |
