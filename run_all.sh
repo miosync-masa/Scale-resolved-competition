@@ -14,6 +14,8 @@
 
 set -e
 mkdir -p data figures
+# t=0 initial verification
+verify_shell_sum(solver, u_hat, v_hat, w_hat)
 
 echo "=========================================="
 echo "  Step 1/6: Baseline TG (Fig.1)"
