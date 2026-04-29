@@ -5,6 +5,8 @@
 
 set -e
 mkdir -p data
+# t=0 initial verification
+verify_shell_sum(solver, u_hat, v_hat, w_hat)
 
 echo "=========================================="
 echo "  HIGH-RE RUN 1: N=256, nu=0.002"
