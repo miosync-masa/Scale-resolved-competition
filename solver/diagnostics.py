@@ -143,7 +143,7 @@ def compute_shell_metrics(solver, u_hat, v_hat, w_hat):
         if not np.any(mask):
             continue
 
-        # P(k) = Re[ sum_{kappa in shell} conj(omega_hat_k) . stretch_hat_k ] / N^3
+        # P(k) = Re[ sum_{kappa in shell} conj(omega_hat_k) . stretch_hat_k ] / (N3 * N3)
         Pk[k_idx] = np.real(
             np.sum(
                 np.conj(omega_x_hat_np[mask]) * stretch_x_hat_np[mask] +
@@ -152,15 +152,19 @@ def compute_shell_metrics(solver, u_hat, v_hat, w_hat):
             )
         ) / (N3 * N3)
 
-        # D(k) = nu * sum_{kappa in shell} |kappa|^2 |omega_hat(kappa)|^2 / N^3
+        # D(k) = nu * sum_{kappa in shell} |kappa|^2 |omega_hat(kappa)|^2 / (N3 * N3)
         omega_sq_shell = (
             np.abs(omega_x_hat_np[mask])**2 +
             np.abs(omega_y_hat_np[mask])**2 +
             np.abs(omega_z_hat_np[mask])**2
         )
-        Dk[k_idx] = nu * np.sum(K2_np[mask] * omega_sq_shell) / N3
+        Dk[k_idx] = nu * np.sum(K2_np[mask] * omega_sq_shell) / (N3 * N3)
 
-    Rk = np.where(Dk > 1e-30, Pk / Dk, 0.0)
+    Omega_k = np.sum(np.abs(omega_x_hat_np[mask])**2 + 
+                  np.abs(omega_y_hat_np[mask])**2 + 
+                  np.abs(omega_z_hat_np[mask])**2) / (N3 * N3)
+    # R(k) only meaningful where shell has significant enstrophy
+    Rk = np.where(Dk > 1e-30, Pk / Dk, np.nan)
 
     return Pk, Dk, Rk
 
@@ -190,3 +194,21 @@ def compute_energy_spectrum(solver, u_hat, v_hat, w_hat):
         ) / N3
 
     return Ek
+
+def verify_shell_sum(solver, u_hat, v_hat, w_hat):
+    """Verify Σ P(k) = P_global and Σ D(k) = D_global."""
+    Omega, P_global, D_global, _, _ = compute_global_metrics(solver, u_hat, v_hat, w_hat)
+    Pk, Dk, _ = compute_shell_metrics(solver, u_hat, v_hat, w_hat)
+    
+    P_sum = np.sum(Pk)
+    D_sum = np.sum(Dk)
+    
+    P_err = abs(P_sum - float(P_global)) / (abs(float(P_global)) + 1e-30)
+    D_err = abs(D_sum - float(D_global)) / (abs(float(D_global)) + 1e-30)
+    
+    print(f"P: global={float(P_global):.10e}, sum={P_sum:.10e}, rel_err={P_err:.2e}")
+    print(f"D: global={float(D_global):.10e}, sum={D_sum:.10e}, rel_err={D_err:.2e}")
+    
+    assert P_err < 1e-6, f"P(k) sum mismatch: {P_err}"
+    assert D_err < 1e-6, f"D(k) sum mismatch: {D_err}"
+    return P_err, D_err
