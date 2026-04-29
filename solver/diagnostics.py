@@ -150,7 +150,7 @@ def compute_shell_metrics(solver, u_hat, v_hat, w_hat):
                 np.conj(omega_y_hat_np[mask]) * stretch_y_hat_np[mask] +
                 np.conj(omega_z_hat_np[mask]) * stretch_z_hat_np[mask]
             )
-        ) / N3
+        ) / (N3 * N3)
 
         # D(k) = nu * sum_{kappa in shell} |kappa|^2 |omega_hat(kappa)|^2 / N^3
         omega_sq_shell = (
