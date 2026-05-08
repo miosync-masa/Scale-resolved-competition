@@ -17,12 +17,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Install Elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          ~/.elan/bin/elan default stable
+
       - name: Build (Lean)
-        uses: leanprover/lean-action@v1
-        with:
-          path: lean4
+        working-directory: lean4
+        run: |
+          lake update
+          lake build
 
       - name: Build docs (doc-gen)
-        uses: leanprover-community/docgen-action@v1
-        with:
-          path: lean4
+        working-directory: lean4
+        run: |
+          lake exe docs
