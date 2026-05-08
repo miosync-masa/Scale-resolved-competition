@@ -4,6 +4,8 @@ Pseudo-spectral DNS code for the paper submitted to the *Journal of Fluid Mechan
 
 **"Scale-resolved competition between vortex stretching and viscous dissipation in three-dimensional Navier–Stokes flow"**
 
+[![Lean Action CI](https://github.com/miosync-masa/Scale-resolved-competition/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/miosync-masa/Scale-resolved-competition/actions/workflows/lean_action_ci.yml)
+
 
 ## Overview
 
