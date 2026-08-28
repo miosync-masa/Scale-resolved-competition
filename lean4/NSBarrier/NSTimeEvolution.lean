@@ -43,10 +43,10 @@ abbrev Vec := Fin 3 → ℂ
 def modeC (κ : Mode) : Vec := fun i => (κ i : ℂ)
 
 /-- 双線形（共役なし）内積。 -/
-def dot (v w : Vec) : ℂ := ∑ i, v i * w i
+noncomputable def dot (v w : Vec) : ℂ := ∑ i, v i * w i
 
 /-- Hermite 内積 `⟪v, w⟫ = Σ conj(vᵢ) wᵢ`。 -/
-def herm (v w : Vec) : ℂ := ∑ i, (starRingEnd ℂ) (v i) * w i
+noncomputable def herm (v w : Vec) : ℂ := ∑ i, (starRingEnd ℂ) (v i) * w i
 
 /-- `‖κ‖²`（整数格子上の二乗長）。 -/
 def sqLen (κ : Mode) : ℝ := ∑ i, ((κ i : ℝ)) ^ 2
